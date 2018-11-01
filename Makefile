@@ -10,7 +10,8 @@ MKDIR_P			= mkdir -p
 OBJECTS_1_SAVINGS				= 	build/o/1-savings.o \
 									build/o/instance.o
 
-OBJECTS_2_GOLOSA				= 	build/o/2-golosa.o
+OBJECTS_2_GOLOSA				= 	build/o/2-golosa.o \
+									build/o/instance.o
 OBJECTS_3_SWEEP_ALGORITHM		= 	build/o/3-sweep-algorithm.o
 OBJECTS_4_OTRA_CLUSTERIZACION	= 	build/o/4-otra-clusterizacion.o
 OBJECTS_5_SIMULATED_ANNEALING	= 	build/o/5-simulated-annealing.o
