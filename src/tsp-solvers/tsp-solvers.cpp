@@ -1,5 +1,6 @@
 #include <vector>
 #include <tuple>
+#include <iostream>
 #include "tsp-solvers.hpp"
 
 int getNodoMasCercanoEnClusterNoVisitado(uint nodo, std::vector<std::vector<double>> &distancias, std::vector<uint> nodosDelCluster, std::vector<bool> &visitado)

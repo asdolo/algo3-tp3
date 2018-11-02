@@ -1,5 +1,5 @@
 #include <vector>
-using namespace std;
+
 #ifndef AUX_HPP
 #define AUX_HPP
 
@@ -7,22 +7,23 @@ using namespace std;
 void printMatriz(std::vector<std::vector<double>> matriz, std::ostream &stream);
 
 //-----------------------------------------------------------------------------------
-//Ej 1 y Ej 2 
+//Ej 1 y Ej 2
 struct route
 {
     uint indiceRuta;
-    vector<uint> ruta;
+    std::vector<uint> ruta;
     uint capacityRoute;
     double distancia;
-    route(uint i,vector<uint> r,uint c,double d) : indiceRuta(i),ruta(r),capacityRoute(c),distancia(d)
-        {
-        }
+    route(uint i, std::vector<uint> r, uint c, double d) : indiceRuta(i), ruta(r), capacityRoute(c), distancia(d)
+    {
+    }
 };
-double calcularCosto(vector< vector<double> > matriz, vector< route > routes);
+
+double calcularCosto(std::vector<std::vector<double>> matriz, std::vector<route> routes);
 void printRoute(route r);
-void printRoutes(vector< route >& routes);
+void printRoutes(std::vector<route> &routes);
 void printRutaSolucion(route r);
-void imprimirSolucionTP(vector< vector<double> > matriz, vector< route > routes);
+void imprimirSolucionTP(std::vector<std::vector<double>> matriz, std::vector<route> routes);
 
 //-----------------------------------------------------------------------------------
 //Ej 3 y Ej 4
