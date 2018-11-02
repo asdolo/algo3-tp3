@@ -4,18 +4,19 @@
 #include <time.h>
 #include <map> 
 #include "aux.hpp"
+#include <limits>
 #include "tsplib-helper/instance.hpp"
 using namespace std;
 map <uint, uint> clienteARuta;
 
 
 uint obtenerClienteMasCercano(vector<vector<double>> matriz,vector<uint> demand,vector<bool> loAgregue,uint capacidadActual,uint capacityTruck,uint clienteActual){
-    double max = -1;
+    double min = std::numeric_limits<double>::infinity();
     uint clienteMasCercano = 0;
     for(uint j=0;j<matriz.size();j++){
-        if(j!=clienteActual && !loAgregue[j] && matriz[clienteActual][j]>max && demand[j]+capacidadActual<=capacityTruck){
+        if(j!=clienteActual && !loAgregue[j] && matriz[clienteActual][j]<min && demand[j]+capacidadActual<=capacityTruck){
             clienteMasCercano = j;
-            max = matriz[clienteActual][j];
+            min = matriz[clienteActual][j];
         }
     }
     return clienteMasCercano;
@@ -80,7 +81,6 @@ void exchangeClients(vector<route>& routes , uint nroRutaA,uint nroRutaB ){
     routes[nroRutaB].ruta=nuevaRutaB;
 }
 
-
 int main(int argc, char *argv[])
 {
     uint repeticionesGrasp=argc >= 2 ? stoi(argv[1]) : 3;
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
     // Obtengo el grafo que modela la instancia
     vector<vector<double>> matrizDeAdyacencia = tspInstance.getTSPGraph();
-    
+
     // Obtengo el id del deposito
     uint indiceDeposito = tspInstance.depot[0];
 
