@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/1-savings",
+            "program": "${workspaceFolder}/build/bin/3-sweep-algorithm",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

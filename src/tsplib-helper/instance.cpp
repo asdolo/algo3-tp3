@@ -4,12 +4,10 @@
 #include <math.h>
 #include "instance.hpp"
 
-using namespace std;
-
 // Lee una instancia desde un istream
-TSPLibInstance::TSPLibInstance(istream &stream)
+TSPLibInstance::TSPLibInstance(std::istream &stream)
 {
-    string input;
+    std::string input;
     do
     {
         stream >> input;
@@ -17,12 +15,12 @@ TSPLibInstance::TSPLibInstance(istream &stream)
         if (input.compare("NAME") == 0)
         {
             stream.ignore(3, EOF);
-            getline(stream, name);
+            std::getline(stream, name);
         }
         else if (input.compare("COMMENT") == 0)
         {
             stream.ignore(3, EOF);
-            getline(stream, comment);
+            std::getline(stream, comment);
         }
         else if (input.compare("TYPE") == 0)
         {
@@ -46,24 +44,28 @@ TSPLibInstance::TSPLibInstance(istream &stream)
         }
         else if (input.compare("NODE_COORD_SECTION") == 0)
         {
+            nodeCoords = std::vector<std::tuple<double, double>>(0);
+
             for (uint i = 0; i < dimension; i++)
             {
                 uint id;
-                uint x, y;
+                double x, y;
 
                 stream >> id >> x >> y;
-                nodeCoords[id] = tuple<uint, uint>(x, y);
+                nodeCoords.push_back(std::tuple<double, double>(x, y));
             }
         }
         else if (input.compare("DEMAND_SECTION") == 0)
         {
+            demand = std::vector<uint>(0);
+
             for (uint i = 0; i < dimension; i++)
             {
                 uint id;
                 uint node_demand;
 
                 stream >> id >> node_demand;
-                demand[id] = node_demand;
+                demand.push_back(node_demand);
             }
         }
         else if (input.compare("DEPOT_SECTION") == 0)
@@ -73,7 +75,7 @@ TSPLibInstance::TSPLibInstance(istream &stream)
             stream >> node;
             while (node != -1)
             {
-                depot.push_back((uint)node);
+                depot.push_back((uint)node - 1);
                 stream >> node;
             }
         }
@@ -81,66 +83,66 @@ TSPLibInstance::TSPLibInstance(istream &stream)
 }
 
 // Imprime una instancia a un ostream.
-void TSPLibInstance::printToStream(ostream &stream)
+void TSPLibInstance::printToStream(std::ostream &stream)
 {
-    stream << "NAME : " << name << endl;
-    stream << "COMMENT : " << comment << endl;
-    stream << "TYPE : " << type << endl;
-    stream << "DIMENSION : " << dimension << endl;
-    stream << "EDGE_WEIGHT_TYPE : " << edgeWeightType << endl;
-    stream << "CAPACITY : " << capacity << endl;
-    stream << "NODE_COORD_SECTION" << endl;
+    stream << "NAME : " << name << std::endl;
+    stream << "COMMENT : " << comment << std::endl;
+    stream << "TYPE : " << type << std::endl;
+    stream << "DIMENSION : " << dimension << std::endl;
+    stream << "EDGE_WEIGHT_TYPE : " << edgeWeightType << std::endl;
+    stream << "CAPACITY : " << capacity << std::endl;
+    stream << "NODE_COORD_SECTION" << std::endl;
 
-    for (pair<uint, tuple<uint, uint>> element : nodeCoords)
+    for (uint i = 0; i < dimension; i++)
     {
-        uint id = element.first;
-        uint x = get<0>(element.second);
-        uint y = get<1>(element.second);
+        uint id = i + 1;
+        double x = std::get<0>(nodeCoords[i]);
+        double y = std::get<1>(nodeCoords[i]);
 
-        stream << " " << id << " " << x << " " << y << endl;
+        stream << " " << id << " " << x << " " << y << std::endl;
     }
 
-    stream << "DEMAND_SECTION" << endl;
+    stream << "DEMAND_SECTION" << std::endl;
 
-    for (pair<uint, uint> element : demand)
+    for (uint i = 0; i < dimension; i++)
     {
-        uint id = element.first;
-        uint node_demand = element.second;
+        uint id = i + 1;
+        uint node_demand = demand[i];
 
-        stream << id << " " << node_demand << endl;
+        stream << id << " " << node_demand << std::endl;
     }
 
-    stream << "DEPOT_SECTION" << endl;
+    stream << "DEPOT_SECTION" << std::endl;
 
     for (uint i = 0; i < depot.size(); i++)
     {
-        stream << " " << depot[i] << endl;
+        stream << " " << depot[i] << std::endl;
     }
 
-    stream << " " << -1 << endl;
+    stream << " " << -1 << std::endl;
 
-    stream << "EOF" << endl;
+    stream << "EOF" << std::endl;
 }
 
 // Devuelve el grafo completo correspondiente a la instancia, donde
 // dicho grafo modela la instancia según lo argumentado en el informe
-// adjunto a este trabajo. 
-vector<vector<double>> TSPLibInstance::getTSPGraph()
+// adjunto a este trabajo.
+std::vector<std::vector<double>> TSPLibInstance::getTSPGraph()
 {
-    vector<vector<double>> matrix(dimension);
+    std::vector<std::vector<double>> matrix(dimension);
 
     // Inicializamos la matriz resultante en 0
     for (uint i = 0; i < dimension; i++)
     {
-        matrix[i] = vector<double>(dimension);
+        matrix[i] = std::vector<double>(dimension);
 
         for (uint j = 0; j < dimension; j++)
         {
-            int xd = get<0>(nodeCoords[i+1]) - get<0>(nodeCoords[j+1]);
-            int yd = get<1>(nodeCoords[i+1]) - get<1>(nodeCoords[j+1]);
+            double xd = std::get<0>(nodeCoords[i]) - std::get<0>(nodeCoords[j]);
+            double yd = std::get<1>(nodeCoords[i]) - std::get<1>(nodeCoords[j]);
 
             // Calculo la norma/distancia entre los dos puntos
-            double distance = sqrt(xd*xd + yd*yd);
+            double distance = sqrt(xd * xd + yd * yd);
 
             matrix[i][j] = distance;
         }

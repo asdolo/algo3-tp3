@@ -1,27 +1,25 @@
 #include <vector>
 #include <tuple>
-#include <map>
-using namespace std;
 
-#ifndef TSPLIB_INSTANCE_H
-#define TSPLIB_INSTANCE_H
+#ifndef TSPLIB_INSTANCE_HPP
+#define TSPLIB_INSTANCE_HPP
 
-class TSPLibInstance 
-{ 
-    public:
-    string name; 
-    string comment; 
-    string type; 
-    uint dimension; 
-    string edgeWeightType; 
-    uint capacity;
-    map<uint, tuple<uint, uint>> nodeCoords;
-    map<uint, uint> demand;
-    vector<uint> depot;
-  
-    TSPLibInstance(istream& stream);
-    void printToStream(ostream& stream);
-    vector<vector<double>> getTSPGraph();
+class TSPLibInstance
+{
+public:
+  std::string name;
+  std::string comment;
+  std::string type;
+  uint dimension;
+  std::string edgeWeightType;
+  uint capacity;
+  std::vector<std::tuple<double, double>> nodeCoords;
+  std::vector<uint> demand;
+  std::vector<uint> depot;
+
+  TSPLibInstance(std::istream &stream);
+  void printToStream(std::ostream &stream);
+  std::vector<std::vector<double>> getTSPGraph();
 };
 
 #endif
