@@ -2,7 +2,7 @@
 #include <vector>
 #include "tsplib-helper/instance.hpp"
 using namespace std;
-
+map <uint, uint> clienteARuta;
 struct saving
 {
     uint i;
@@ -56,59 +56,61 @@ vector< route > createRoutes(uint size,map<uint, uint> demand,uint depositoId){
     for(uint i = 1; i <= size; i++)
     {
         if(i!=depositoId){
+            clienteARuta.insert(pair<uint,uint>(i,res.size()));
             vector< uint > ruta;
             ruta.push_back(depositoId);
             ruta.push_back(i);
             ruta.push_back(depositoId);
             res.push_back(route(i,ruta,demand[i]));
+            
         }
     }
     return res;
 }
 void mergearRutas(vector<route>& routes,uint a,uint b,uint depositoId){
     
-    int indiceRutaA = routes[a-2].indiceRuta - 2;
-    int indiceRutaB = routes[b-2].indiceRuta - 2;
-    uint sizeRutaA = routes[indiceRutaA].ruta.size();
-    uint sizeRutaB = routes[indiceRutaB].ruta.size();
+    uint sizeRutaA = routes[clienteARuta[a]].ruta.size();
+    uint sizeRutaB = routes[clienteARuta[b]].ruta.size();
     if(sizeRutaA == 0 || sizeRutaB == 0) return;
     if(sizeRutaA>sizeRutaB){
-        if(routes[indiceRutaA].ruta[sizeRutaA-2] == a && routes[indiceRutaB].ruta[sizeRutaB-3] == depositoId ){
-            routes[indiceRutaA].ruta.erase(routes[indiceRutaA].ruta.begin()+sizeRutaA-1);
+        if(routes[clienteARuta[a]].ruta[sizeRutaA-2] == a && routes[clienteARuta[b]].ruta[sizeRutaB-3] == depositoId ){
+            routes[clienteARuta[a]].ruta.erase(routes[clienteARuta[a]].ruta.begin()+sizeRutaA-1);
             bool agregar=false;
             for(uint i=0; i<sizeRutaB;i++){
                 if(!agregar){
-                    if(routes[indiceRutaB].ruta[i]==b){
+                    if(routes[clienteARuta[b]].ruta[i]==b){
                         agregar=true;
-                        routes[indiceRutaA].ruta.push_back(b);
+                        routes[clienteARuta[a]].ruta.push_back(b);
                     }
                 }else{
-                    routes[indiceRutaA].ruta.push_back(routes[indiceRutaB].ruta[i]);
+                    routes[clienteARuta[a]].ruta.push_back(routes[clienteARuta[b]].ruta[i]);
                 }
             }
-            routes[indiceRutaB].ruta.clear();
-            routes[indiceRutaA].capacityRoute+=routes[indiceRutaB].capacityRoute;
-            routes[indiceRutaB].indiceRuta=routes[indiceRutaA].indiceRuta;
-            routes[indiceRutaB].capacityRoute = 0;
+            routes[clienteARuta[b]].ruta.clear();
+            routes[clienteARuta[a]].capacityRoute+=routes[clienteARuta[b]].capacityRoute;
+            routes[clienteARuta[b]].indiceRuta=routes[clienteARuta[a]].indiceRuta;
+            routes[clienteARuta[b]].capacityRoute = 0;
+            clienteARuta[b]=clienteARuta[a];
         }
     }else{ 
-        if(routes[indiceRutaB].ruta[sizeRutaB-2] == b && routes[indiceRutaA].ruta[sizeRutaA-3] == depositoId){
-            routes[indiceRutaB].ruta.erase(routes[indiceRutaB].ruta.begin()+sizeRutaB-1);
+        if(routes[clienteARuta[b]].ruta[sizeRutaB-2] == b && routes[clienteARuta[a]].ruta[sizeRutaA-3] == depositoId){
+            routes[clienteARuta[b]].ruta.erase(routes[clienteARuta[b]].ruta.begin()+sizeRutaB-1);
             bool agregar=false;
             for(uint i=0; i<sizeRutaA;i++){
                 if(!agregar){
-                    if(routes[indiceRutaA].ruta[i]==a){
+                    if(routes[clienteARuta[a]].ruta[i]==a){
                         agregar=true;
-                        routes[indiceRutaB].ruta.push_back(a);
+                        routes[clienteARuta[b]].ruta.push_back(a);
                     }
                 }else{
-                    routes[indiceRutaB].ruta.push_back(routes[indiceRutaA].ruta[i]);
+                    routes[clienteARuta[b]].ruta.push_back(routes[clienteARuta[a]].ruta[i]);
                 }
             }
-            routes[indiceRutaA].ruta.clear();
-            routes[indiceRutaB].capacityRoute += routes[indiceRutaA].capacityRoute;
-            routes[indiceRutaA].indiceRuta = routes[indiceRutaB].indiceRuta;
-            routes[indiceRutaA].capacityRoute = 0;
+            routes[clienteARuta[a]].ruta.clear();
+            routes[clienteARuta[b]].capacityRoute += routes[clienteARuta[a]].capacityRoute;
+            routes[clienteARuta[a]].indiceRuta = routes[clienteARuta[b]].indiceRuta;
+            routes[clienteARuta[a]].capacityRoute = 0;
+            clienteARuta[a]=clienteARuta[b];
         }
     }
     return;
@@ -116,16 +118,14 @@ void mergearRutas(vector<route>& routes,uint a,uint b,uint depositoId){
 void mergeRoutes(saving s,vector< route >& routes,uint capacityMax,uint depositoId){
     uint i = s.i;
     uint j = s.j;
-    int indiceRutaI = routes[i-2].indiceRuta - 2;
-    int indiceRutaJ = routes[j-2].indiceRuta - 2;
     //Me fijo si ya estan en la misma ruta
-    if(indiceRutaI == indiceRutaJ){
+    if(clienteARuta[i] == clienteARuta[j]){
         //Ya estan en la misma ruta, no los puedo mergear
         return;
     }
     
     //Ahora me fijo si al unirlos , el volumen requerido se pasa de la capacidad
-    if(routes[indiceRutaI].capacityRoute+routes[indiceRutaJ].capacityRoute > capacityMax){
+    if(routes[clienteARuta[i]].capacityRoute+routes[clienteARuta[j]].capacityRoute > capacityMax){
         //No los puedo unir ya que el camion se desbordaria.
         return;
     }
@@ -209,7 +209,8 @@ int main(int argc, char *argv[])
     // Imprimo los savings
     //printSavings(savings);
     
-    // Creo las rutas basicas que consisten en un camion por cliente.
+    // Creo la solucion inicial.
+    // La solucion consistira en rutas basicas que consisten en un camion por cliente.
     // Cada ruta es deposito-cliente-deposito
     vector< route > routes = createRoutes(matrizDeAdyacencia.size(),tspInstance.demand,depositoId);
     
@@ -233,9 +234,9 @@ int main(int argc, char *argv[])
         }
     }
     // Enumero las rutas desde 1 hasta cantidad de rutas necesarias
-    for(uint i=0;i<routes.size();i++){
+    /* for(uint i=0;i<routes.size();i++){
         routes[i].indiceRuta = i+1;
-    }
+    }*/
 
     // Imprimo las rutas mergeadas
     //printRoutes(routes);
