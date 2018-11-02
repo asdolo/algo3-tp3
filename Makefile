@@ -18,12 +18,14 @@ OBJECTS_2_GOLOSA				= 	build/o/2-golosa.o \
 OBJECTS_3_SWEEP_ALGORITHM		= 	build/o/3-sweep-algorithm.o \
 									build/o/instance.o \
 									build/o/aux.o \
-									build/o/tsp-solvers.o
+									build/o/tsp-solvers.o \
+									build/o/clusterization-methods.o
 
 OBJECTS_4_OTRA_CLUSTERIZACION	= 	build/o/4-otra-clusterizacion.o \
 									build/o/instance.o \
 									build/o/aux.o \
-									build/o/tsp-solvers.o
+									build/o/tsp-solvers.o \
+									build/o/clusterization-methods.o
 
 OBJECTS_5_SIMULATED_ANNEALING	= 	build/o/5-simulated-annealing.o \
 									build/o/instance.o \
@@ -93,4 +95,7 @@ build/o/aux.o: directories src/aux.cpp src/aux.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/o/aux.o src/aux.cpp
 
 build/o/tsp-solvers.o: directories src/tsp-solvers/tsp-solvers.cpp src/tsp-solvers/tsp-solvers.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/o/tsp-solvers.o src/tsp-solvers/tsp-solvers.cpp	
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/o/tsp-solvers.o src/tsp-solvers/tsp-solvers.cpp
+
+build/o/clusterization-methods.o: directories src/clusterization/clusterization-methods.cpp src/clusterization/clusterization-methods.hpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/o/clusterization-methods.o src/clusterization/clusterization-methods.cpp	

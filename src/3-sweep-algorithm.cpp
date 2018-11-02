@@ -6,26 +6,10 @@
 
 #include "tsplib-helper/instance.hpp"
 #include "tsp-solvers/tsp-solvers.hpp"
+#include "clusterization/clusterization-methods.hpp"
 #include "aux.hpp"
 
 #define _USE_MATH_DEFINES
-
-struct NodeInPolarCoords
-{
-    uint m_id;
-    double m_r;
-    double m_theta;
-    double m_demand;
-
-    NodeInPolarCoords(uint id, double r, double theta, uint demand) : m_id(id), m_r(r), m_theta(theta), m_demand(demand)
-    {
-    }
-
-    bool operator<(const struct NodeInPolarCoords &other) const
-    {
-        return m_theta < other.m_theta;
-    }
-};
 
 /*
  Argumentos:
@@ -75,30 +59,9 @@ int main(int argc, char *argv[])
         nodesInPolarCoords.push(NodeInPolarCoords(id, r, theta, demand));
     }
 
-    // Vector donde se indica, para cada id de nodo, a qué cluster pertenece
-    std::vector<uint> clusters(tspInstance.dimension, 0);
-    uint cantClusters = 1;
-
-    uint capacidadRestanteClusterActual = tspInstance.capacity;
-    do
-    {
-        // Miramos el primer nodo del heap (aquel con ángulo theta menor)
-        NodeInPolarCoords nodo = nodesInPolarCoords.top();
-        if (nodo.m_demand > capacidadRestanteClusterActual)
-        {
-            // Si la demanda de este nodo es mayor que la capacidad restante para este clúster,
-            // aumentamos la cantidad de clusters
-            cantClusters++;
-            capacidadRestanteClusterActual = tspInstance.capacity;
-        }
-
-        clusters[nodo.m_id] = cantClusters;
-        capacidadRestanteClusterActual -= nodo.m_demand;
-
-        // Sacamos este nodo del heap
-        nodesInPolarCoords.pop();
-    } while (nodesInPolarCoords.size() > 0);
-
+    // Ejecuto el Sweep Algorithm para obtener los clústers
+    std::vector<uint> clusters;
+    uint cantClusters = SweepClusterization(tspInstance, nodesInPolarCoords, clusters);
     clusters[depot] = 0;
 
     // Sección route-second:
