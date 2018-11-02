@@ -2,37 +2,20 @@
 #include <vector>
 #include <stdlib.h>
 #include <time.h>
+#include <map> 
+#include "aux.hpp"
 #include "tsplib-helper/instance.hpp"
 using namespace std;
 map <uint, uint> clienteARuta;
-struct route
-{
-    uint indiceRuta;
-    vector<uint> ruta;
-    uint capacityRoute;
-    double distancia;
-    route(uint i,vector<uint> r,uint c,double d) : indiceRuta(i),ruta(r),capacityRoute(c),distancia(d)
-        {
-        }
-};
 
-double calcularCosto(vector< vector<double> > matriz, vector< route > routes){
-    double res=0;
-    for(uint i =0 ;i <routes.size() ;i++){
-        vector<uint> ruta = routes[i].ruta;
-        for(uint j = 0 ; j<ruta.size()-1;j++){
-            res += matriz[ruta[j]-1][ruta[j+1]-1];
-        }
-    }
-    return res;
-}
-uint obtenerClienteMasCercano(vector<vector<double>> matriz,map<uint, uint> demand,vector<bool> loAgregue,uint capacidadActual,uint capacityTruck,uint clienteActual){
+
+uint obtenerClienteMasCercano(vector<vector<double>> matriz,vector<uint> demand,vector<bool> loAgregue,uint capacidadActual,uint capacityTruck,uint clienteActual){
     double max = -1;
     uint clienteMasCercano = 0;
     for(uint j=0;j<matriz.size();j++){
-        if(j!=clienteActual-1 && !loAgregue[j] && matriz[clienteActual-1][j]>max && demand[j+1]+capacidadActual<=capacityTruck){
-            clienteMasCercano = j+1;
-            max = matriz[clienteActual-1][j];
+        if(j!=clienteActual && !loAgregue[j] && matriz[clienteActual][j]>max && demand[j]+capacidadActual<=capacityTruck){
+            clienteMasCercano = j;
+            max = matriz[clienteActual][j];
         }
     }
     return clienteMasCercano;
@@ -43,56 +26,36 @@ bool todosTrue(vector<bool> v){
     }
     return true;
 }
-vector< route > createRoutes(vector<vector<double>> matriz ,map<uint, uint> demand,uint depositoId,uint capacityTruck){
+vector< route > createRoutes(vector<vector<double>> matriz ,vector<uint> demand,uint indiceDeposito,uint capacityTruck){
     vector<bool> loAgregue(matriz.size(),false);
-    loAgregue[depositoId-1]=true;
+    loAgregue[indiceDeposito]=true;
     vector < route > res;
-    int nroRuta=1;
+    uint nroRuta=0;
     while(!todosTrue(loAgregue)){
         vector< uint > ruta;
         uint capacidadActual = 0;
         double distancia = 0;
-        ruta.push_back(depositoId);
-        uint clienteActual = depositoId;
+        ruta.push_back(indiceDeposito);
+        uint clienteActual = indiceDeposito;
         for(uint i = 0 ; i < matriz.size(); i++){
             uint clienteMasCercano=obtenerClienteMasCercano(matriz,demand,loAgregue,capacidadActual,capacityTruck,clienteActual);
             if(clienteMasCercano!=0){                
                 ruta.push_back(clienteMasCercano);
-                loAgregue[clienteMasCercano-1]=true;
+                loAgregue[clienteMasCercano]=true;
                 capacidadActual+=demand[clienteMasCercano];
                 clienteARuta.insert(pair <uint, uint> (clienteMasCercano,nroRuta)); 
-                distancia += matriz[clienteActual-1][clienteMasCercano-1];
+                distancia += matriz[clienteActual][clienteMasCercano];
                 clienteActual=clienteMasCercano;
             }
         }
-        ruta.push_back(depositoId);
+        ruta.push_back(indiceDeposito);
         res.push_back(route(nroRuta++,ruta,capacidadActual,distancia));
     }
     return res;
 }
 
-void printRoute(route r){
-    cout << "Ruta " << r.indiceRuta << ":" << endl;
-    cout << "   ruta= ";
-    vector<uint> ruta = r.ruta;
-    
-    for(uint j = 0; j < ruta.size(); j++)
-    {
-        cout << ruta[j];
-        if(j!=ruta.size()-1){
-            cout << ",";
-        }
-    }
-    cout << endl;
-    cout << "   volumen necesario de la ruta= " << r.capacityRoute << endl;
-    cout << "   distancia recorrida de la ruta= " << r.distancia << endl;
-    cout << endl;
-}
-void printRoutes(vector< route >& routes){
-    for(uint i=0;i<routes.size();i++){
-        printRoute(routes[i]);
-    }
-}
+
+
 bool compareByDistance(const route &a, const route &b)
 {
     return a.distancia >= b.distancia;
@@ -117,29 +80,7 @@ void exchangeClients(vector<route>& routes , uint nroRutaA,uint nroRutaB ){
     routes[nroRutaB].ruta=nuevaRutaB;
 }
 
-void printRutaSolucion(route r){
-    vector<uint> ruta = r.ruta;
-    
-    for(uint j = 0; j < ruta.size(); j++)
-    {
-        cout << ruta[j];
-        if(j != ruta.size()-1){
-            cout << " ";
-        }
-    }
-    cout << endl;
-}
-void imprimirSolucionTP(vector< vector<double> > matriz, vector< route > routes){
-    cout << routes.size() << endl;
-    
-    for(uint i = 0; i < routes.size(); i++)
-    {
-        printRutaSolucion(routes[i]);
-    }
-    cout << calcularCosto(matriz,routes) << endl;
-    
-    
-}
+
 int main(int argc, char *argv[])
 {
     uint repeticionesGrasp=argc >= 2 ? stoi(argv[1]) : 3;
@@ -150,14 +91,14 @@ int main(int argc, char *argv[])
     vector<vector<double>> matrizDeAdyacencia = tspInstance.getTSPGraph();
     
     // Obtengo el id del deposito
-    uint depositoId = tspInstance.depot[0];
+    uint indiceDeposito = tspInstance.depot[0];
 
     // Obtengo la capacidad del camión
     uint capacityTruck = tspInstance.capacity;
 
     // Construyo la solución inicial.
     // La solucion inicial consistira en ir yendo al cliente mas cercano mientras tenga capacidad.
-    vector< route > routes = createRoutes(matrizDeAdyacencia,tspInstance.demand,depositoId, capacityTruck);
+    vector< route > routes = createRoutes(matrizDeAdyacencia,tspInstance.demand,indiceDeposito, capacityTruck);
     
     // Imprimo como quedaron las rutas iniciales.
     //printRoutes(routes);

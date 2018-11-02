@@ -1,8 +1,11 @@
 #include <iostream>
 #include <vector>
+#include <map> 
 #include "tsplib-helper/instance.hpp"
+#include "aux.hpp"
 using namespace std;
 map <uint, uint> clienteARuta;
+
 struct saving
 {
     uint i;
@@ -13,67 +16,43 @@ struct saving
         }
 };
 
-struct route
-{
-    int indiceRuta;
-    vector<uint> ruta;
-    uint capacityRoute;
-    route(int i,vector<uint> r,double c) : indiceRuta(i),ruta(r),capacityRoute(c)
-        {
-        }
-};
-void printRoute(route r){
-    cout << "Ruta " << r.indiceRuta << ":" << endl;
-    cout << "   ruta= ";
-    vector<uint> ruta = r.ruta;
-    
-    for(uint j = 0; j < ruta.size(); j++)
-    {
-        cout << ruta[j];
-        if(j!=ruta.size()-1){
-            cout << ",";
-        }
-    }
-    cout << endl;
-    cout << "   volumen necesario de la ruta= " << r.capacityRoute << endl;
-    cout << endl;
-}
 vector< saving > computeSavings(vector< vector<double> >& matriz){
     vector<saving> savings;
-    for(uint i = 1; i < matriz.size(); i++)
+    for(uint i = 0; i < matriz.size(); i++)
     {
        for(uint j=i+1;j < matriz.size();j++){
            if(matriz[i][0] + matriz[0][j] - matriz[i][j] > 0){
-                savings.push_back(saving(i+1,j+1,matriz[i][0] + matriz[0][j] - matriz[i][j]));
+                savings.push_back(saving(i,j,matriz[i][0] + matriz[0][j] - matriz[i][j]));
             }
        }
     }
     return savings;
 }
 
-vector< route > createRoutes(uint size,map<uint, uint> demand,uint depositoId){
+vector< route > createRoutes(vector<vector<double>> matriz ,vector<uint> demand,uint indiceDeposito){
     vector < route > res;
-    for(uint i = 1; i <= size; i++)
+    for(uint i = 0; i < matriz.size(); i++)
     {
-        if(i!=depositoId){
+        if(i!=indiceDeposito){
             clienteARuta.insert(pair<uint,uint>(i,res.size()));
             vector< uint > ruta;
-            ruta.push_back(depositoId);
+            ruta.push_back(indiceDeposito);
             ruta.push_back(i);
-            ruta.push_back(depositoId);
-            res.push_back(route(i,ruta,demand[i]));
+            ruta.push_back(indiceDeposito);
+            double distancia = 2*matriz[indiceDeposito][i];
+            res.push_back(route(i,ruta,demand[i],distancia));
             
         }
     }
     return res;
 }
-void mergearRutas(vector<route>& routes,uint a,uint b,uint depositoId){
+void mergearRutas(vector<route>& routes,uint a,uint b,uint indiceDeposito){
     
     uint sizeRutaA = routes[clienteARuta[a]].ruta.size();
     uint sizeRutaB = routes[clienteARuta[b]].ruta.size();
     if(sizeRutaA == 0 || sizeRutaB == 0) return;
     if(sizeRutaA>sizeRutaB){
-        if(routes[clienteARuta[a]].ruta[sizeRutaA-2] == a && routes[clienteARuta[b]].ruta[sizeRutaB-3] == depositoId ){
+        if(routes[clienteARuta[a]].ruta[sizeRutaA-2] == a && routes[clienteARuta[b]].ruta[sizeRutaB-3] == indiceDeposito ){
             routes[clienteARuta[a]].ruta.erase(routes[clienteARuta[a]].ruta.begin()+sizeRutaA-1);
             bool agregar=false;
             for(uint i=0; i<sizeRutaB;i++){
@@ -93,7 +72,7 @@ void mergearRutas(vector<route>& routes,uint a,uint b,uint depositoId){
             clienteARuta[b]=clienteARuta[a];
         }
     }else{ 
-        if(routes[clienteARuta[b]].ruta[sizeRutaB-2] == b && routes[clienteARuta[a]].ruta[sizeRutaA-3] == depositoId){
+        if(routes[clienteARuta[b]].ruta[sizeRutaB-2] == b && routes[clienteARuta[a]].ruta[sizeRutaA-3] == indiceDeposito){
             routes[clienteARuta[b]].ruta.erase(routes[clienteARuta[b]].ruta.begin()+sizeRutaB-1);
             bool agregar=false;
             for(uint i=0; i<sizeRutaA;i++){
@@ -115,7 +94,7 @@ void mergearRutas(vector<route>& routes,uint a,uint b,uint depositoId){
     }
     return;
 }
-void mergeRoutes(saving s,vector< route >& routes,uint capacityMax,uint depositoId){
+void mergeRoutes(saving s,vector< route >& routes,uint capacityMax,uint indiceDeposito){
     uint i = s.i;
     uint j = s.j;
     //Me fijo si ya estan en la misma ruta
@@ -129,22 +108,13 @@ void mergeRoutes(saving s,vector< route >& routes,uint capacityMax,uint deposito
         //No los puedo unir ya que el camion se desbordaria.
         return;
     }
-    mergearRutas(routes,i,j,depositoId);
+    mergearRutas(routes,i,j,indiceDeposito);
 
 }
 bool savingCompare(saving a, saving b) { 
     return a.sav >= b.sav; 
 }
-double calcularCosto(vector< vector<double> > matriz, vector< route > routes){
-    double res=0;
-    for(uint i =0 ;i <routes.size() ;i++){
-        vector<uint> ruta = routes[i].ruta;
-        for(uint j = 0 ; j<ruta.size()-1;j++){
-            res += matriz[ruta[j]-1][ruta[j+1]-1];
-        }
-    }
-    return res;
-}
+
 
 void printSavings(vector< saving >& savings){
     for(uint i=0;i<savings.size();i++){
@@ -158,35 +128,6 @@ void printSavings(vector< saving >& savings){
 
 
 
-void printRoutes(vector< route >& routes){
-    for(uint i=0;i<routes.size();i++){
-        printRoute(routes[i]);
-    }
-}
-
-void printRutaSolucion(route r){
-    vector<uint> ruta = r.ruta;
-    
-    for(uint j = 0; j < ruta.size(); j++)
-    {
-        cout << ruta[j];
-        if(j != ruta.size()-1){
-            cout << " ";
-        }
-    }
-    cout << endl;
-}
-void imprimirSolucionTP(vector< vector<double> > matriz, vector< route > routes){
-    cout << routes.size() << endl;
-    
-    for(uint i = 0; i < routes.size(); i++)
-    {
-        printRutaSolucion(routes[i]);
-    }
-    cout << calcularCosto(matriz,routes) << endl;
-    
-    
-}
 int main(int argc, char *argv[])
 {
     // Creo una nueva instancia de TSPLIB a partir de lo que venga por stdin
@@ -196,7 +137,7 @@ int main(int argc, char *argv[])
     vector<vector<double>> matrizDeAdyacencia = tspInstance.getTSPGraph();
     
     // Obtengo el id del deposito
-    uint depositoId = tspInstance.depot[0];
+    uint indiceDeposito = tspInstance.depot[0];
 
     // Obtengo la capacidad del camión
     uint capacityTruck = tspInstance.capacity;
@@ -212,7 +153,7 @@ int main(int argc, char *argv[])
     // Creo la solucion inicial.
     // La solucion consistira en rutas basicas que consisten en un camion por cliente.
     // Cada ruta es deposito-cliente-deposito
-    vector< route > routes = createRoutes(matrizDeAdyacencia.size(),tspInstance.demand,depositoId);
+    vector< route > routes = createRoutes(matrizDeAdyacencia,tspInstance.demand,indiceDeposito);
     
     // Imprimo las rutas
     //printRoutes(routes);
@@ -222,7 +163,7 @@ int main(int argc, char *argv[])
 
     //Mergeo las rutas comenzando por las que mas ahorro me dan.
     for(uint i=0;i<savings.size();i++){
-        mergeRoutes(savings[i],routes,capacityTruck,depositoId);
+        mergeRoutes(savings[i],routes,capacityTruck,indiceDeposito);
     }
 
     // Borro las rutas que quedaron vacias
