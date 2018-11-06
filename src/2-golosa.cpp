@@ -108,10 +108,9 @@ int main(int argc, char *argv[])
     // Construyo la solución inicial.
     // La solucion inicial consistira en ir yendo al cliente mas cercano mientras tenga capacidad.
     std::vector<route> routes = createRoutes(matrizDeAdyacencia, tspInstance.demand, indiceDeposito, capacityTruck);
-
-    // Imprimo como quedaron las rutas iniciales.
-    //printRoutes(routes);
-
+    
+    /*
+    // No hace falta esto al final. Con lo de arriba ya es golosa
     // Ordeno las rutas por distancia decrecientemente
     std::sort(routes.begin(), routes.end(), compareByDistance);
 
@@ -139,7 +138,7 @@ int main(int argc, char *argv[])
         }
         repeticionesGrasp--;
     }
-
+    */
     imprimirSolucionTP(matrizDeAdyacencia, routes);
 
     return 0;

@@ -1,11 +1,9 @@
 #include <iostream>
 #include <vector>
-#include <map>
 #include <algorithm>
 #include "tsplib-helper/instance.hpp"
 #include "aux.hpp"
 
-std::map<uint, uint> clienteARuta;
 
 struct saving
 {
@@ -17,128 +15,161 @@ struct saving
     }
 };
 
-std::vector<saving> computeSavings(std::vector<std::vector<double>> &matriz)
+route obtenerMinimaRuta(std::vector<route> rutas){
+    double minimaDistancia = rutas[0].distancia;
+    uint indiceRutaMinima = 0;
+    
+    for(uint i = 1; i < rutas.size(); i++)
+    {
+        if(rutas[i].distancia < minimaDistancia){
+            minimaDistancia= rutas[i].distancia;
+            indiceRutaMinima = i;
+        }
+    }
+    return rutas[indiceRutaMinima];
+}
+
+
+route obtenerRutasCombinadas(std::vector<std::vector<double>> matriz,route a,route b){
+    //Calculo la nueva capacidad de la ruta
+    double capacidad = a.capacityRoute+b.capacityRoute;
+    //Copio la ruta A
+    std::vector<uint> rutaA = a.ruta;
+    // Obtengo la distancia de la ruta A , quitandole la ultima arista al deposito.
+    double distanciaA = a.distancia - matriz[rutaA[rutaA.size()-2]][rutaA[rutaA.size()-1]];
+    rutaA.erase(rutaA.begin()+rutaA.size()-1);
+    // Hago la combinacion generando la ruta : deposito-rutaA(sin deposito)-rutaB(sin deposito) - deposito
+    for(uint i =1 ; i < b.ruta.size();i++){
+        rutaA.push_back(b.ruta[i]);
+        distanciaA+= matriz[rutaA[rutaA.size()-2]][rutaA[rutaA.size()-1]];
+    }
+    route res(a.indiceRuta,rutaA,capacidad,distanciaA);
+    return res;
+}
+
+// Devuelve la mejor combinacion de las rutas a y b , mejor con respecto a menor distancia.
+// Complejidad: O(N)
+route combinarRuta(std::vector<std::vector<double>>& matriz,route a, route b){
+    std::vector<uint> rutaA = a.ruta;
+    std::vector<uint> rutaB = b.ruta;
+    std::reverse(rutaA.begin(),rutaA.end());
+    std::reverse(rutaB.begin(),rutaB.end());
+    route reversaA(a.indiceRuta,rutaA,a.capacityRoute,a.distancia);
+    route reversaB(b.indiceRuta,rutaB,b.capacityRoute,b.distancia);
+    std::vector<route> rutasPosibles;
+
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,a,b));
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,b,a));
+
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,reversaA,b));
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,b,reversaA));
+    
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,a,reversaB));
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,reversaB,a));
+
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,reversaA,reversaB));
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,reversaB,reversaA));
+    // Devuelvo la ruta combinada que menos distancia recorre.
+    return obtenerMinimaRuta(rutasPosibles);
+}
+
+
+
+
+// Genera un vector de savings que consisten en los ahorros posibles de combinar rutas tales que no excedan la capacidad del camion
+// Complejidad: O(N^3)
+std::vector<saving> computeSavings(std::vector<std::vector<double>> &matriz,std::vector<route>& routes,uint capacityTruck)
 {
     std::vector<saving> savings;
-    for (uint i = 0; i < matriz.size(); i++)
+    for (uint i = 0; i < routes.size(); i++)
     {
-        for (uint j = i + 1; j < matriz.size(); j++)
+        for (uint j = i+1; j < routes.size(); j++)
         {
-            if (matriz[i][0] + matriz[0][j] - matriz[i][j] > 0)
-            {
-                savings.push_back(saving(i, j, matriz[i][0] + matriz[0][j] - matriz[i][j]));
+            // Me fijo si uniendo las rutas no me paso de la capacidad del camion.
+            if(routes[i].capacityRoute+routes[j].capacityRoute < capacityTruck){
+                // Creo la ruta nueva combinando las dos rutas de la mejor manera
+                route rutaNueva = combinarRuta(matriz,routes[i],routes[j]);
+                //Calculo el costo de la nueva ruta
+                double costoNuevaRuta=rutaNueva.distancia;
+                //Calculo el costo de la suma de las dos rutas sin unirlas
+                double costoSumaDeRutas=routes[i].distancia+routes[j].distancia;
+                //Me fijo si al unir las rutas ahorro distancia.
+                if(costoNuevaRuta < costoSumaDeRutas)
+                {
+                    savings.push_back(saving(i, j,costoNuevaRuta));
+                }
             }
         }
     }
     return savings;
 }
+// Funcion para ordenar decreciemente el vector savings.
+// Complejidad: O(1)
+bool savingCompare(saving a, saving b)
+{
+    return a.sav > b.sav;
+}
 
-std::vector<route> createRoutes(std::vector<std::vector<double>> matriz, std::vector<uint> demand, uint indiceDeposito)
+// Funcion que elimina los savings en los que la rutaViejaA y la rutaViejaB esten involucrados y luego ..
+// Genera nuevos savings con la nueva ruta ( producto de la combinacion de rutaViejaA y la rutaViejaB) rutaMergeada.
+// Modifica savings
+// Complejidad: O(N^2)
+void recomputeSavings(std::vector<std::vector<double>>& matriz,std::vector<saving>& savings,std::vector<route>& routes,uint capacityTruck,uint rutaViejaA,uint rutaViejaB,uint rutaMergeada)
+{
+    //Elimino los savings que ya no tienen sentido
+    for(uint i=0;i<savings.size();i++){
+        if(savings[i].i == rutaViejaA || savings[i].i ==rutaViejaB || savings[i].j == rutaViejaA || savings[i].j ==rutaViejaB){
+            savings.erase(savings.begin()+i);
+            i--;
+        }
+    }
+
+    //Veo si existen savings nuevos con la ruta nueva.
+    for (uint j = 0; j < routes.size(); j++)
+    {
+        // Me fijo de que no sea la misma ruta y que la ruta exista
+        if(j != rutaMergeada && routes[j].ruta.size()>0){
+            //Me fijo que al unirlas no se exceda de la capacidad del camion.
+            if(routes[rutaMergeada].capacityRoute+routes[j].capacityRoute < capacityTruck){
+
+                route rutaNueva = combinarRuta(matriz,routes[rutaMergeada],routes[j]);
+                double costoNuevaRuta=rutaNueva.distancia;
+                double costoSumaDeRutas=routes[rutaMergeada].distancia + routes[j].distancia;
+                if(costoNuevaRuta < costoSumaDeRutas)
+                {
+                    //Inserto ordenado
+                    savings.insert(std::upper_bound( savings.begin(), savings.end(), saving(rutaMergeada, j,costoNuevaRuta), savingCompare ),saving(rutaMergeada, j,costoNuevaRuta));
+                    
+                }
+            }
+        }
+        
+    }
+}
+
+// Crea la solucion inicial que consiste en rutas : deposito-cliente-deposito
+// Complejidad: O(N)
+std::vector<route> createRoutes(std::vector<std::vector<double>>& matriz, std::vector<uint>& demand, uint indiceDeposito)
 {
     std::vector<route> res;
     for (uint i = 0; i < matriz.size(); i++)
     {
         if (i != indiceDeposito)
         {
-            clienteARuta.insert(std::pair<uint, uint>(i, res.size()));
             std::vector<uint> ruta;
             ruta.push_back(indiceDeposito);
             ruta.push_back(i);
             ruta.push_back(indiceDeposito);
-            double distancia = 2 * matriz[indiceDeposito][i];
+            double distancia =matriz[indiceDeposito][i] + matriz[i][indiceDeposito];
             res.push_back(route(i, ruta, demand[i], distancia));
         }
     }
     return res;
 }
-void mergearRutas(std::vector<route> &routes, uint a, uint b, uint indiceDeposito)
-{
 
-    uint sizeRutaA = routes[clienteARuta[a]].ruta.size();
-    uint sizeRutaB = routes[clienteARuta[b]].ruta.size();
-    if (sizeRutaA == 0 || sizeRutaB == 0)
-        return;
-    if (sizeRutaA > sizeRutaB)
-    {
-        if (routes[clienteARuta[a]].ruta[sizeRutaA - 2] == a && routes[clienteARuta[b]].ruta[sizeRutaB - 3] == indiceDeposito)
-        {
-            routes[clienteARuta[a]].ruta.erase(routes[clienteARuta[a]].ruta.begin() + sizeRutaA - 1);
-            bool agregar = false;
-            for (uint i = 0; i < sizeRutaB; i++)
-            {
-                if (!agregar)
-                {
-                    if (routes[clienteARuta[b]].ruta[i] == b)
-                    {
-                        agregar = true;
-                        routes[clienteARuta[a]].ruta.push_back(b);
-                    }
-                }
-                else
-                {
-                    routes[clienteARuta[a]].ruta.push_back(routes[clienteARuta[b]].ruta[i]);
-                }
-            }
-            routes[clienteARuta[b]].ruta.clear();
-            routes[clienteARuta[a]].capacityRoute += routes[clienteARuta[b]].capacityRoute;
-            routes[clienteARuta[b]].indiceRuta = routes[clienteARuta[a]].indiceRuta;
-            routes[clienteARuta[b]].capacityRoute = 0;
-            clienteARuta[b] = clienteARuta[a];
-        }
-    }
-    else
-    {
-        if (routes[clienteARuta[b]].ruta[sizeRutaB - 2] == b && routes[clienteARuta[a]].ruta[sizeRutaA - 3] == indiceDeposito)
-        {
-            routes[clienteARuta[b]].ruta.erase(routes[clienteARuta[b]].ruta.begin() + sizeRutaB - 1);
-            bool agregar = false;
-            for (uint i = 0; i < sizeRutaA; i++)
-            {
-                if (!agregar)
-                {
-                    if (routes[clienteARuta[a]].ruta[i] == a)
-                    {
-                        agregar = true;
-                        routes[clienteARuta[b]].ruta.push_back(a);
-                    }
-                }
-                else
-                {
-                    routes[clienteARuta[b]].ruta.push_back(routes[clienteARuta[a]].ruta[i]);
-                }
-            }
-            routes[clienteARuta[a]].ruta.clear();
-            routes[clienteARuta[b]].capacityRoute += routes[clienteARuta[a]].capacityRoute;
-            routes[clienteARuta[a]].indiceRuta = routes[clienteARuta[b]].indiceRuta;
-            routes[clienteARuta[a]].capacityRoute = 0;
-            clienteARuta[a] = clienteARuta[b];
-        }
-    }
-    return;
-}
-void mergeRoutes(saving s, std::vector<route> &routes, uint capacityMax, uint indiceDeposito)
-{
-    uint i = s.i;
-    uint j = s.j;
-    //Me fijo si ya estan en la misma ruta
-    if (clienteARuta[i] == clienteARuta[j])
-    {
-        //Ya estan en la misma ruta, no los puedo mergear
-        return;
-    }
 
-    //Ahora me fijo si al unirlos , el volumen requerido se pasa de la capacidad
-    if (routes[clienteARuta[i]].capacityRoute + routes[clienteARuta[j]].capacityRoute > capacityMax)
-    {
-        //No los puedo unir ya que el camion se desbordaria.
-        return;
-    }
-    mergearRutas(routes, i, j, indiceDeposito);
-}
-bool savingCompare(saving a, saving b)
-{
-    return a.sav >= b.sav;
-}
+
+
 
 void printSavings(std::vector<saving> &savings)
 {
@@ -165,11 +196,7 @@ int main(int argc, char *argv[])
 
     // Obtengo la capacidad del camión
     uint capacityTruck = tspInstance.capacity;
-    // Calculo cuanto me puedo ahorrar uniendo rutas. Solo guardo las que me generan un ahorro real.
-    std::vector<saving> savings = computeSavings(matrizDeAdyacencia);
 
-    // Ordendo decrecientemente los savings.
-    std::sort(savings.begin(), savings.end(), savingCompare);
 
     // Imprimo los savings
     //printSavings(savings);
@@ -179,23 +206,26 @@ int main(int argc, char *argv[])
     // Cada ruta es deposito-cliente-deposito
     std::vector<route> routes = createRoutes(matrizDeAdyacencia, tspInstance.demand, indiceDeposito);
 
-    // Imprimo las rutas
-    //printRoutes(routes);
+    // Calculo cuanto me puedo ahorrar uniendo rutas. Solo guardo las que me generan un ahorro real.
+    std::vector<saving> savings = computeSavings(matrizDeAdyacencia,routes,capacityTruck);
 
-    // Imprimo el costo total si dejaria las rutas como estan.
-    //cout << "Costo Inicial:" << calcularCosto(matrizDeAdyacencia,routes) << endl;
-
+    // Ordendo decrecientemente los savings.
+    std::sort(savings.begin(), savings.end(), savingCompare);
     //Mergeo las rutas comenzando por las que mas ahorro me dan.
-    for (uint i = 0; i < savings.size(); i++)
-    {
-        mergeRoutes(savings[i], routes, capacityTruck, indiceDeposito);
+    while(savings.size()>0){
+        route rutaA=routes[savings[0].i];
+        route rutaB=routes[savings[0].j];
+        route r = combinarRuta(matrizDeAdyacencia,rutaA,rutaB);
+        routes.push_back(r);
+        routes[savings[0].i].ruta.clear();
+        routes[savings[0].j].ruta.clear();
+        recomputeSavings(matrizDeAdyacencia,savings,routes,capacityTruck,savings[0].i,savings[0].j,routes.size()-1);
     }
 
     // Borro las rutas que quedaron vacias
     for (uint i = 0; i < routes.size(); i++)
     {
-        std::vector<uint> ruta = routes[i].ruta;
-        if (ruta.size() == 0)
+        if (routes[i].ruta.size() == 0)
         {
             routes.erase(routes.begin() + i);
             i--;
