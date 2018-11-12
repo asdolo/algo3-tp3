@@ -19,7 +19,7 @@ public:
 
   TSPLibInstance(std::istream &stream);
   void printToStream(std::ostream &stream);
-  std::vector<std::vector<double>> getTSPGraph();
+  std::vector<std::vector<double>> getTSPGraph(bool withDepot = true);
 };
 
 #endif

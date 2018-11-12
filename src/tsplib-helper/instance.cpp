@@ -116,7 +116,7 @@ void TSPLibInstance::printToStream(std::ostream &stream)
 
     for (uint i = 0; i < depot.size(); i++)
     {
-        stream << " " << depot[i] << std::endl;
+        stream << " " << depot[i] + 1 << std::endl;
     }
 
     stream << " " << -1 << std::endl;
@@ -127,7 +127,7 @@ void TSPLibInstance::printToStream(std::ostream &stream)
 // Devuelve el grafo completo correspondiente a la instancia, donde
 // dicho grafo modela la instancia según lo argumentado en el informe
 // adjunto a este trabajo.
-std::vector<std::vector<double>> TSPLibInstance::getTSPGraph()
+std::vector<std::vector<double>> TSPLibInstance::getTSPGraph(bool withDepot)
 {
     std::vector<std::vector<double>> matrix(dimension);
 
@@ -138,13 +138,20 @@ std::vector<std::vector<double>> TSPLibInstance::getTSPGraph()
 
         for (uint j = 0; j < dimension; j++)
         {
-            double xd = std::get<0>(nodeCoords[i]) - std::get<0>(nodeCoords[j]);
-            double yd = std::get<1>(nodeCoords[i]) - std::get<1>(nodeCoords[j]);
+            if (!withDepot && (i == depot[0] || j == depot[0]))
+            {
+                matrix[i][j] = 0;
+            }
+            else
+            {
+                double xd = std::get<0>(nodeCoords[i]) - std::get<0>(nodeCoords[j]);
+                double yd = std::get<1>(nodeCoords[i]) - std::get<1>(nodeCoords[j]);
 
-            // Calculo la norma/distancia entre los dos puntos
-            double distance = sqrt(xd * xd + yd * yd);
+                // Calculo la norma/distancia entre los dos puntos
+                double distance = sqrt(xd * xd + yd * yd);
 
-            matrix[i][j] = distance;
+                matrix[i][j] = distance;
+            }
         }
     }
 
