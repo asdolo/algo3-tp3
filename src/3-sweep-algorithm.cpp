@@ -121,8 +121,7 @@ int main(int argc, char *argv[])
 
         for (uint j = 0; j < ruta.size() - 1; j++)
         {
-            costoRuta += matrizDeAdyacencia[ruta[i]][ruta[i + 1]];
-            ;
+            costoRuta += matrizDeAdyacencia[ruta[j]][ruta[j + 1]];
 
             std::cout << ruta[j] + 1 << " ";
             archivoRutas << ruta[j] + 1 << " ";
@@ -139,7 +138,7 @@ int main(int argc, char *argv[])
         std::vector<uint> ruta = rutasVehiculos[i];
         for (uint j = 0; j < ruta.size() - 1; j++)
         {
-            costoTotal += matrizDeAdyacencia[ruta[i]][ruta[i + 1]];
+            costoTotal += matrizDeAdyacencia[ruta[j]][ruta[j + 1]];
         }
     }
 
