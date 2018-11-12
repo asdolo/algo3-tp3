@@ -2,7 +2,8 @@
 #include <iostream>
 #include <math.h>
 #include <tuple>
-
+#include <fstream>
+#include <string>
 #include "aux.hpp"
 
 //General
@@ -57,28 +58,36 @@ void printRoute(route r)
     std::cout << "   volumen necesario de la ruta= " << r.capacityRoute << std::endl;
     std::cout << std::endl;
 }
-void printRutaSolucion(route r)
+void printRutaSolucion(route r, std::ofstream & archivoRutas)
 {
     std::vector<uint> ruta = r.ruta;
 
     for (uint j = 0; j < ruta.size(); j++)
     {
+        archivoRutas << ruta[j] + 1;
         std::cout << ruta[j] + 1;
         if (j != ruta.size() - 1)
         {
+            archivoRutas << " ";
             std::cout << " ";
         }
     }
     std::cout << std::endl;
 }
 
-void imprimirSolucionTP(std::vector<std::vector<double>> matriz, std::vector<route> routes)
-{
+void imprimirSolucionTP(std::vector<std::vector<double>> matriz, std::vector<route> routes,std::string rutas)
+{   
+    std::ofstream archivoRutas;
+    archivoRutas.open(rutas, std::ios::out | std::ios::trunc);
+    archivoRutas << "camion,ruta,distancia" << std::endl;
+
     std::cout << routes.size() << std::endl;
 
     for (uint i = 0; i < routes.size(); i++)
     {
-        printRutaSolucion(routes[i]);
+        archivoRutas << i+1 << ",";
+        printRutaSolucion(routes[i],archivoRutas);
+        archivoRutas << "," << routes[i].distancia << std::endl;
     }
     std::cout << calcularCosto(matriz, routes) << std::endl;
 }

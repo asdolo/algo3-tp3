@@ -6,6 +6,10 @@
 #include "aux.hpp"
 #include <limits>
 #include <algorithm>
+#include <string>
+#include <fstream>
+#include <tuple>
+#include <chrono>
 #include "tsplib-helper/instance.hpp"
 
 std::map<uint, uint> clienteARuta;
@@ -92,9 +96,29 @@ void exchangeClients(std::vector<route> &routes, uint nroRutaA, uint nroRutaB)
 
 int main(int argc, char *argv[])
 {
-    // uint repeticionesGrasp = argc >= 2 ? std::stoi(argv[1]) : 3;
     // Creo una nueva instancia de TSPLIB a partir de lo que venga por stdin
     TSPLibInstance tspInstance(std::cin);
+
+    std::string stringRutas = argc >= 2 ? argv[1] : "output/2-golosa/rutas.csv";
+    std::string stringTabla = argc >= 3 ? argv[2] : "output/2-golosa/tabla.csv";
+    std::string stringTiempo = argc >= 4 ? argv[3] : "output/2-golosa/tiempo.csv";
+    system("mkdir -p output/2-golosa/");
+    std::ofstream archivoTabla;
+    std::ofstream archivoTiempo;
+    archivoTabla.open(stringTabla, std::ios::out | std::ios::trunc);
+    archivoTiempo.open(stringTiempo, std::ios_base::app);
+
+    //Imprimo entrada en CSV para experimentos
+    archivoTabla << "id,x,y" << std::endl;
+    for (uint i = 0; i < tspInstance.dimension; i++)
+    {
+        uint id = i + 1;
+        double x = std::get<0>(tspInstance.nodeCoords[i]);
+        double y = std::get<1>(tspInstance.nodeCoords[i]);
+
+        archivoTabla << id << "," << x << "," << y << std::endl;
+    }
+    archivoTabla.close();
 
     // Obtengo el grafo que modela la instancia
     std::vector<std::vector<double>> matrizDeAdyacencia = tspInstance.getTSPGraph();
@@ -104,42 +128,23 @@ int main(int argc, char *argv[])
 
     // Obtengo la capacidad del camión
     uint capacityTruck = tspInstance.capacity;
-
+    auto startTime = std::chrono::steady_clock::now();
     // Construyo la solución inicial.
     // La solucion inicial consistira en ir yendo al cliente mas cercano mientras tenga capacidad.
     std::vector<route> routes = createRoutes(matrizDeAdyacencia, tspInstance.demand, indiceDeposito, capacityTruck);
+    auto endTime = std::chrono::steady_clock::now();
+    //Calculo cuanto tiempo costo.
+    auto diff = endTime - startTime;
     
-    /*
-    // No hace falta esto al final. Con lo de arriba ya es golosa
-    // Ordeno las rutas por distancia decrecientemente
-    std::sort(routes.begin(), routes.end(), compareByDistance);
 
-    // Calculo el costo total de la solucion inicial
-    double costoTotal = calcularCosto(matrizDeAdyacencia, routes);
-
-    // Recorro el grafo de soluciones utilizando GRASP
-    while (repeticionesGrasp > 0)
-    {
-        std::vector<route> routesAux = routes;
-        // Elijo dos rutas al azar
-        srand(time(NULL));
-        uint randomNumber1 = rand() % (routesAux.size() - 1);
-        uint randomNumber2 = randomNumber1;
-        while (randomNumber2 == randomNumber1)
-            randomNumber2 = rand() % (routesAux.size() - 1);
-
-        // Busco en la vecindad utilizando exchange
-        exchangeClients(routesAux, randomNumber1, randomNumber2);
-        double costoTotalAux = calcularCosto(matrizDeAdyacencia, routesAux);
-        if (costoTotal > costoTotalAux)
-        {
-            routes = routesAux;
-            costoTotal = costoTotalAux;
-        }
-        repeticionesGrasp--;
-    }
-    */
-    imprimirSolucionTP(matrizDeAdyacencia, routes);
+    //Imprimo los tiempos del algoritmo
+    archivoTiempo << tspInstance.dimension;
+    archivoTiempo << ",";
+    archivoTiempo << std::chrono::duration <double, std::milli>(diff).count();
+    archivoTiempo << std::endl;
+    archivoTiempo.close();
+    
+    imprimirSolucionTP(matrizDeAdyacencia, routes,stringRutas);
 
     return 0;
 }
