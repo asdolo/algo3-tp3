@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
                 nodosDelCluster.push_back(j);
         }
 
-        std::vector<uint> ruta = NearestNeighborConClusters(depot, matrizDeAdyacencia, nodosDelCluster);
+        std::vector<uint> ruta = NearestNeighborEnCluster(depot, matrizDeAdyacencia, nodosDelCluster);
         rutasVehiculos.push_back(ruta);
     }
 

@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
                 nodosDelCluster.push_back(j);
         }
 
-        std::vector<uint> ruta = NearestNeighborConClusters(depot, matrizDeAdyacencia, nodosDelCluster);
+        std::vector<uint> ruta = PrimerSolucionFactibleEnCluster(depot, nodosDelCluster);
         rutasVehiculos.push_back(ruta);
     }
 
