@@ -92,7 +92,7 @@ void exchangeClients(std::vector<route> &routes, uint nroRutaA, uint nroRutaB)
 
 int main(int argc, char *argv[])
 {
-    uint repeticionesGrasp = argc >= 2 ? std::stoi(argv[1]) : 3;
+    // uint repeticionesGrasp = argc >= 2 ? std::stoi(argv[1]) : 3;
     // Creo una nueva instancia de TSPLIB a partir de lo que venga por stdin
     TSPLibInstance tspInstance(std::cin);
 
