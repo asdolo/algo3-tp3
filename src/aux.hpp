@@ -1,4 +1,5 @@
 #include <vector>
+#include <climits>
 
 #ifndef AUX_HPP
 #define AUX_HPP
@@ -27,5 +28,11 @@ void imprimirSolucionTP(std::vector<std::vector<double>> matriz, std::vector<rou
 
 //-----------------------------------------------------------------------------------
 //Ej 3 y Ej 4
+int minKey(std::vector<double> key, std::vector<bool> mstSet);
+std::vector<std::vector<double>> prim(std::vector<std::vector<double>> E);
+bool isConsistentEdge(std::vector<std::vector<double>> &agm, int nodoA, int nodoB, int vecindad, int version, double excesoNecesarioDesvioEstandar, double ratioExceso);
+void obtenerVecinosN(std::vector<std::vector<double>> &agm, uint nodoA, uint nodoB, uint n, std::vector<double> &res, double &sumatoria);
+double standardDeviation(std::vector<double> arr, int n);
+double variance(std::vector<double> &a, int n);
 
 #endif

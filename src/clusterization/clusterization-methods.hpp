@@ -23,5 +23,9 @@ struct NodeInPolarCoords
 };
 
 uint SweepClusterization(TSPLibInstance &tspInstance, std::priority_queue<NodeInPolarCoords> &nodesInPolarCoords, std::vector<uint> &clusters);
+uint TP2Clusterization(TSPLibInstance &tspInstance, std::vector<uint> &clusters);
+
+std::vector<std::tuple<int, int, int>> obtenerListaDeAristas(std::vector<std::vector<double>> E);
+void definirClusterTP2(std::vector<std::vector<double>> grafo, std::vector<uint> &result, std::vector<bool> &visitados, uint i, int nroCluster);
 
 #endif
