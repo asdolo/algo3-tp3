@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
         double y_desplazado = y - std::get<1>(tspInstance.nodeCoords[depot]);
         double r = sqrt(x_desplazado * x_desplazado + y_desplazado * y_desplazado);
         double theta = atan2(y_desplazado, x_desplazado);
+        theta = theta < 0 ? (theta + 2 * M_PI) : theta;
         uint cluster = clusters[i];
 
         archivoTablaClusters << id << "," << x << "," << y << "," << r << "," << theta << "," << cluster << std::endl;
