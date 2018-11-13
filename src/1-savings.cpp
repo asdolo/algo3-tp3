@@ -81,7 +81,7 @@ route combinarRuta(std::vector<std::vector<double>>& matriz,route a, route b){
 
 
 // Genera un vector de savings que consisten en los ahorros posibles de combinar rutas tales que no excedan la capacidad del camion
-// Complejidad: O(N^3)
+// Complejidad: O(N^2)
 std::vector<saving> computeSavings(std::vector<std::vector<double>> &matriz,std::vector<route>& routes,uint capacityTruck)
 {
     std::vector<saving> savings;
@@ -195,6 +195,7 @@ int main(int argc, char *argv[])
     std::string stringRutas = argc >= 2 ? argv[1] : "output/1-savings/rutas.csv";
     std::string stringTabla = argc >= 3 ? argv[2] : "output/1-savings/tabla.csv";
     std::string stringTiempo = argc >= 4 ? argv[3] : "output/1-savings/tiempo.csv";
+    int cantidadRepeticiones = argc >= 5 ? std::stoi(argv[4]) : 1;
     system("mkdir -p output/1-savings/");
     std::ofstream archivoTabla;
     std::ofstream archivoTiempo;
@@ -222,7 +223,7 @@ int main(int argc, char *argv[])
     // Obtengo la capacidad del camión
     uint capacityTruck = tspInstance.capacity;
 
-
+    
     auto startTime = std::chrono::steady_clock::now();
     // Creo la solucion inicial.
     // La solucion consistira en rutas basicas que consisten en un camion por cliente.
@@ -230,7 +231,7 @@ int main(int argc, char *argv[])
     std::vector<route> routes = createRoutes(matrizDeAdyacencia, tspInstance.demand, indiceDeposito); //O(N)
 
     // Calculo cuanto me puedo ahorrar uniendo rutas. Solo guardo las que me generan un ahorro real.
-    std::vector<saving> savings = computeSavings(matrizDeAdyacencia,routes,capacityTruck); //O(N^3)
+    std::vector<saving> savings = computeSavings(matrizDeAdyacencia,routes,capacityTruck); //O(N^2)
 
     // Ordendo decrecientemente los savings.
     std::stable_sort(savings.begin(), savings.end(), savingCompare); //O(N (LOG_2(N))^2)
@@ -245,6 +246,39 @@ int main(int argc, char *argv[])
         recomputeSavings(matrizDeAdyacencia,savings,routes,capacityTruck,savings[0].i,savings[0].j,routes.size()-1);//O(N^2)
     }
     auto endTime = std::chrono::steady_clock::now();
+    
+    //Calculo cuanto tiempo costo.
+    auto diff = endTime - startTime;
+    uint repeticiones = cantidadRepeticiones-1;
+    while(repeticiones>0){
+        startTime = std::chrono::steady_clock::now();
+        // Creo la solucion inicial.
+        // La solucion consistira en rutas basicas que consisten en un camion por cliente.
+        // Cada ruta es deposito-cliente-deposito
+        routes = createRoutes(matrizDeAdyacencia, tspInstance.demand, indiceDeposito); //O(N)
+
+        // Calculo cuanto me puedo ahorrar uniendo rutas. Solo guardo las que me generan un ahorro real.
+        savings = computeSavings(matrizDeAdyacencia,routes,capacityTruck); //O(N^2)
+
+        // Ordendo decrecientemente los savings.
+        std::stable_sort(savings.begin(), savings.end(), savingCompare); //O(N (LOG_2(N))^2)
+        //Mergeo las rutas comenzando por las que mas ahorro me dan.
+        while(savings.size()>0){ //O(N^3) total. Ya que a por cada mergeo tengo una ruta menos, por lo tanto como mucho iterare cantidad de rutas veces que comienzan siendo N
+            route rutaA=routes[savings[0].i];
+            route rutaB=routes[savings[0].j];
+            route r = combinarRuta(matrizDeAdyacencia,rutaA,rutaB); //O(N)
+            routes.push_back(r);
+            routes[savings[0].i].ruta.clear();
+            routes[savings[0].j].ruta.clear();
+            recomputeSavings(matrizDeAdyacencia,savings,routes,capacityTruck,savings[0].i,savings[0].j,routes.size()-1);//O(N^2)
+        }
+        endTime = std::chrono::steady_clock::now();
+        
+        //Calculo cuanto tiempo costo.
+        diff += (endTime - startTime);
+        repeticiones--;
+    }
+    diff/=cantidadRepeticiones;
     // Borro las rutas que quedaron vacias
     for (uint i = 0; i < routes.size(); i++)
     {
@@ -254,15 +288,12 @@ int main(int argc, char *argv[])
             i--;
         }
     }
-
-    //Calculo cuanto tiempo costo.
-    auto diff = endTime - startTime;
-    
-
     //Imprimo los tiempos del algoritmo
     archivoTiempo << tspInstance.dimension;
     archivoTiempo << ",";
     archivoTiempo << std::chrono::duration <double, std::milli>(diff).count();
+    archivoTiempo << ",";
+    archivoTiempo << calcularCosto(matrizDeAdyacencia, routes);
     archivoTiempo << std::endl;
     archivoTiempo.close();
 
