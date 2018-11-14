@@ -93,7 +93,7 @@ std::vector<saving> computeSavings(std::vector<std::vector<double>> &matriz,std:
             if(routes[i].capacityRoute+routes[j].capacityRoute < capacityTruck){
                 // Creo la ruta nueva combinando las dos rutas de la mejor manera
                 route rutaNueva = combinarRuta(matriz,routes[i],routes[j]);
-                //Calculo el costo de la nueva ruta
+                // Obtengo el costo de la nueva ruta
                 double costoNuevaRuta=rutaNueva.distancia;
                 //Calculo el costo de la suma de las dos rutas sin unirlas
                 double costoSumaDeRutas=routes[i].distancia+routes[j].distancia;
@@ -187,6 +187,29 @@ void printSavings(std::vector<saving> &savings)
     }
 }
 
+void ejecutarSavings(std::vector<std::vector<double>>& matrizDeAdyacencia,uint indiceDeposito,uint capacityTruck,std::vector<route>& routes,std::vector<uint>& demanda){
+    // Creo la solucion inicial.
+    // La solucion consistira en rutas basicas que consisten en un camion por cliente.
+    // Cada ruta es deposito-cliente-deposito
+    routes = createRoutes(matrizDeAdyacencia, demanda, indiceDeposito); //O(N)
+
+    // Calculo cuanto me puedo ahorrar uniendo rutas. Solo guardo las que me generan un ahorro real.
+    std::vector<saving> savings = computeSavings(matrizDeAdyacencia,routes,capacityTruck); //O(N^2)
+
+    // Ordendo decrecientemente los savings.
+    std::stable_sort(savings.begin(), savings.end(), savingCompare); //O(N (LOG_2(N))^2)
+    
+    //Mergeo las rutas comenzando por las que mas ahorro me dan.
+    while(savings.size()>0){ //O(N^3) total. Ya que a por cada mergeo tengo una ruta menos, por lo tanto como mucho iterare cantidad de rutas veces que comienzan siendo N
+        route rutaA=routes[savings[0].i];
+        route rutaB=routes[savings[0].j];
+        route r = combinarRuta(matrizDeAdyacencia,rutaA,rutaB); //O(N)
+        routes.push_back(r);
+        routes[savings[0].i].ruta.clear();
+        routes[savings[0].j].ruta.clear();
+        recomputeSavings(matrizDeAdyacencia,savings,routes,capacityTruck,savings[0].i,savings[0].j,routes.size()-1);//O(N^2)
+    }
+}
 int main(int argc, char *argv[])
 {
     // Creo una nueva instancia de TSPLIB a partir de lo que venga por stdin
@@ -196,7 +219,7 @@ int main(int argc, char *argv[])
     std::string stringTabla = argc >= 3 ? argv[2] : "output/1-savings/tabla.csv";
     std::string stringTiempo = argc >= 4 ? argv[3] : "output/1-savings/tiempo.csv";
     int cantidadRepeticiones = argc >= 5 ? std::stoi(argv[4]) : 1;
-    system("mkdir -p output/1-savings/");
+    if(argc<2)system("mkdir -p output/1-savings/");
     std::ofstream archivoTabla;
     std::ofstream archivoTiempo;
     archivoTabla.open(stringTabla, std::ios::out | std::ios::trunc);
@@ -223,55 +246,24 @@ int main(int argc, char *argv[])
     // Obtengo la capacidad del camión
     uint capacityTruck = tspInstance.capacity;
 
+    // Obtengo la demanda de los clientes
+    std::vector<uint> demanda = tspInstance.demand;
     
+    std::vector<route> routes;
+
+    // Ejecuto el algoritmo
     auto startTime = std::chrono::steady_clock::now();
-    // Creo la solucion inicial.
-    // La solucion consistira en rutas basicas que consisten en un camion por cliente.
-    // Cada ruta es deposito-cliente-deposito
-    std::vector<route> routes = createRoutes(matrizDeAdyacencia, tspInstance.demand, indiceDeposito); //O(N)
-
-    // Calculo cuanto me puedo ahorrar uniendo rutas. Solo guardo las que me generan un ahorro real.
-    std::vector<saving> savings = computeSavings(matrizDeAdyacencia,routes,capacityTruck); //O(N^2)
-
-    // Ordendo decrecientemente los savings.
-    std::stable_sort(savings.begin(), savings.end(), savingCompare); //O(N (LOG_2(N))^2)
-    //Mergeo las rutas comenzando por las que mas ahorro me dan.
-    while(savings.size()>0){ //O(N^3) total. Ya que a por cada mergeo tengo una ruta menos, por lo tanto como mucho iterare cantidad de rutas veces que comienzan siendo N
-        route rutaA=routes[savings[0].i];
-        route rutaB=routes[savings[0].j];
-        route r = combinarRuta(matrizDeAdyacencia,rutaA,rutaB); //O(N)
-        routes.push_back(r);
-        routes[savings[0].i].ruta.clear();
-        routes[savings[0].j].ruta.clear();
-        recomputeSavings(matrizDeAdyacencia,savings,routes,capacityTruck,savings[0].i,savings[0].j,routes.size()-1);//O(N^2)
-    }
+    ejecutarSavings(matrizDeAdyacencia,indiceDeposito,capacityTruck,routes,demanda);
     auto endTime = std::chrono::steady_clock::now();
-    
+
     //Calculo cuanto tiempo costo.
     auto diff = endTime - startTime;
+
     uint repeticiones = cantidadRepeticiones-1;
     while(repeticiones>0){
+        // Ejecuto el algoritmo
         startTime = std::chrono::steady_clock::now();
-        // Creo la solucion inicial.
-        // La solucion consistira en rutas basicas que consisten en un camion por cliente.
-        // Cada ruta es deposito-cliente-deposito
-        routes = createRoutes(matrizDeAdyacencia, tspInstance.demand, indiceDeposito); //O(N)
-
-        // Calculo cuanto me puedo ahorrar uniendo rutas. Solo guardo las que me generan un ahorro real.
-        savings = computeSavings(matrizDeAdyacencia,routes,capacityTruck); //O(N^2)
-
-        // Ordendo decrecientemente los savings.
-        std::stable_sort(savings.begin(), savings.end(), savingCompare); //O(N (LOG_2(N))^2)
-        //Mergeo las rutas comenzando por las que mas ahorro me dan.
-        while(savings.size()>0){ //O(N^3) total. Ya que a por cada mergeo tengo una ruta menos, por lo tanto como mucho iterare cantidad de rutas veces que comienzan siendo N
-            route rutaA=routes[savings[0].i];
-            route rutaB=routes[savings[0].j];
-            route r = combinarRuta(matrizDeAdyacencia,rutaA,rutaB); //O(N)
-            routes.push_back(r);
-            routes[savings[0].i].ruta.clear();
-            routes[savings[0].j].ruta.clear();
-            recomputeSavings(matrizDeAdyacencia,savings,routes,capacityTruck,savings[0].i,savings[0].j,routes.size()-1);//O(N^2)
-        }
+        ejecutarSavings(matrizDeAdyacencia,indiceDeposito,capacityTruck,routes,demanda);
         endTime = std::chrono::steady_clock::now();
         
         //Calculo cuanto tiempo costo.
@@ -299,5 +291,6 @@ int main(int argc, char *argv[])
 
     //Imprimo la solucion requerida por el enunciado
     imprimirSolucionTP(matrizDeAdyacencia, routes,stringRutas);
+
     return 0;
 }

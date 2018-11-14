@@ -93,7 +93,11 @@ void exchangeClients(std::vector<route> &routes, uint nroRutaA, uint nroRutaB)
     routes[nroRutaA].ruta = nuevaRutaA;
     routes[nroRutaB].ruta = nuevaRutaB;
 }
-
+void ejecutarGolosa(std::vector<std::vector<double>>& matrizDeAdyacencia,uint indiceDeposito,uint capacityTruck,std::vector<route>& routes,std::vector<uint>& demanda){
+    // Construyo la solución inicial.
+    // La solucion inicial consistira en ir yendo al cliente mas cercano mientras tenga capacidad.
+    routes = createRoutes(matrizDeAdyacencia, demanda, indiceDeposito, capacityTruck);
+}
 int main(int argc, char *argv[])
 {
     // Creo una nueva instancia de TSPLIB a partir de lo que venga por stdin
@@ -102,7 +106,8 @@ int main(int argc, char *argv[])
     std::string stringRutas = argc >= 2 ? argv[1] : "output/2-golosa/rutas.csv";
     std::string stringTabla = argc >= 3 ? argv[2] : "output/2-golosa/tabla.csv";
     std::string stringTiempo = argc >= 4 ? argv[3] : "output/2-golosa/tiempo.csv";
-    system("mkdir -p output/2-golosa/");
+    int cantidadRepeticiones = argc >= 5 ? std::stoi(argv[4]) : 1;
+    if(argc<2)system("mkdir -p output/2-golosa/");
     std::ofstream archivoTabla;
     std::ofstream archivoTiempo;
     archivoTabla.open(stringTabla, std::ios::out | std::ios::trunc);
@@ -128,19 +133,36 @@ int main(int argc, char *argv[])
 
     // Obtengo la capacidad del camión
     uint capacityTruck = tspInstance.capacity;
+
+    // Obtengo la demanda de los clientes 
+    std::vector<uint> demanda = tspInstance.demand;
+
+    std::vector<route> routes;
+    // Ejecuto el algoritmo
     auto startTime = std::chrono::steady_clock::now();
-    // Construyo la solución inicial.
-    // La solucion inicial consistira en ir yendo al cliente mas cercano mientras tenga capacidad.
-    std::vector<route> routes = createRoutes(matrizDeAdyacencia, tspInstance.demand, indiceDeposito, capacityTruck);
+    ejecutarGolosa(matrizDeAdyacencia,indiceDeposito,capacityTruck,routes,demanda);
     auto endTime = std::chrono::steady_clock::now();
     //Calculo cuanto tiempo costo.
     auto diff = endTime - startTime;
-    
+    uint repeticiones = cantidadRepeticiones-1;
+    while(repeticiones>0){
+        // Ejecuto el algoritmo
+        startTime = std::chrono::steady_clock::now();
+        ejecutarGolosa(matrizDeAdyacencia,indiceDeposito,capacityTruck,routes,demanda);
+        endTime = std::chrono::steady_clock::now();
+        
+        //Calculo cuanto tiempo costo.
+        diff += (endTime - startTime);
+        repeticiones--;
+    }
+    diff/=cantidadRepeticiones;
 
     //Imprimo los tiempos del algoritmo
     archivoTiempo << tspInstance.dimension;
     archivoTiempo << ",";
     archivoTiempo << std::chrono::duration <double, std::milli>(diff).count();
+    archivoTiempo << ",";
+    archivoTiempo << calcularCosto(matrizDeAdyacencia, routes);
     archivoTiempo << std::endl;
     archivoTiempo.close();
     
