@@ -69,30 +69,7 @@ std::vector<route> createRoutes(std::vector<std::vector<double>> matriz, std::ve
     return res;
 }
 
-bool compareByDistance(const route &a, const route &b)
-{
-    return a.distancia >= b.distancia;
-}
-void exchangeClients(std::vector<route> &routes, uint nroRutaA, uint nroRutaB)
-{
-    std::vector<uint> rutaA = routes[nroRutaA].ruta;
-    std::vector<uint> rutaB = routes[nroRutaB].ruta;
-    std::vector<uint> nuevaRutaA;
-    nuevaRutaA.push_back(rutaA[0]);
-    nuevaRutaA.push_back(rutaA[1]);
-    nuevaRutaA.push_back(rutaB[rutaB.size() - 2]);
-    nuevaRutaA.push_back(rutaA[rutaA.size() - 1]);
-    std::vector<uint> nuevaRutaB;
 
-    for (uint i = 0; i < rutaB.size() - 2; i++)
-    {
-        nuevaRutaB.push_back(rutaB[i]);
-    }
-    nuevaRutaB.push_back(rutaA[1]);
-    nuevaRutaB.push_back(rutaB[rutaB.size() - 1]);
-    routes[nroRutaA].ruta = nuevaRutaA;
-    routes[nroRutaB].ruta = nuevaRutaB;
-}
 void ejecutarGolosa(std::vector<std::vector<double>>& matrizDeAdyacencia,uint indiceDeposito,uint capacityTruck,std::vector<route>& routes,std::vector<uint>& demanda){
     // Construyo la solución inicial.
     // La solucion inicial consistira en ir yendo al cliente mas cercano mientras tenga capacidad.
