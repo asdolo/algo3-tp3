@@ -210,6 +210,7 @@ void ejecutarSavings(std::vector<std::vector<double>>& matrizDeAdyacencia,uint i
         recomputeSavings(matrizDeAdyacencia,savings,routes,capacityTruck,savings[0].i,savings[0].j,routes.size()-1);//O(N^2)
     }
 }
+#ifndef COMPILANDO_SIMULATED_ANNEALING
 int main(int argc, char *argv[])
 {
     // Creo una nueva instancia de TSPLIB a partir de lo que venga por stdin
@@ -294,3 +295,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+#endif
