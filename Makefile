@@ -9,7 +9,8 @@ MKDIR_P			= mkdir -p
 
 OBJECTS_1_SAVINGS				= 	build/o/1-savings.o \
 									build/o/instance.o \
-									build/o/aux.o
+									build/o/aux.o \
+									build/o/savings.o
 
 OBJECTS_2_GOLOSA				= 	build/o/2-golosa.o \
 									build/o/instance.o \
@@ -29,7 +30,8 @@ OBJECTS_4_OTRA_CLUSTERIZACION	= 	build/o/4-otra-clusterizacion.o \
 
 OBJECTS_5_SIMULATED_ANNEALING	= 	build/o/5-simulated-annealing.o \
 									build/o/instance.o \
-									build/o/aux.o
+									build/o/aux.o \
+									build/o/savings.o
 
 
 TARGET_1_SAVINGS				= 	1-savings
@@ -93,6 +95,9 @@ build/o/instance.o: directories src/tsplib-helper/instance.cpp src/tsplib-helper
 
 build/o/aux.o: directories src/aux.cpp src/aux.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/o/aux.o src/aux.cpp
+
+build/o/savings.o: directories src/savings/savings.cpp src/savings/savings.hpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/o/savings.o src/savings/savings.cpp
 
 build/o/tsp-solvers.o: directories src/tsp-solvers/tsp-solvers.cpp src/tsp-solvers/tsp-solvers.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/o/tsp-solvers.o src/tsp-solvers/tsp-solvers.cpp

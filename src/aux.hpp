@@ -25,6 +25,9 @@ void printRoute(route r);
 void printRoutes(std::vector<route> &routes);
 void printRutaSolucion(route r, std::ofstream & archivoRutas);
 void imprimirSolucionTP(std::vector<std::vector<double>> matriz, std::vector<route> routes,std::string rutas);    
+route obtenerMinimaRuta(std::vector<route> rutas);
+route obtenerRutasCombinadas(std::vector<std::vector<double>> matriz,route a,route b);
+route obtenerLaMejorCombinacionDeRutas(std::vector<std::vector<double>>& matriz,route a, route b);
 //-----------------------------------------------------------------------------------
 //Ej 3 y Ej 4
 int minKey(std::vector<double> key, std::vector<bool> mstSet);

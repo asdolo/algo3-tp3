@@ -92,6 +92,61 @@ void imprimirSolucionTP(std::vector<std::vector<double>> matriz, std::vector<rou
     std::cout << calcularCosto(matriz, routes) << std::endl;
 }
 
+route obtenerMinimaRuta(std::vector<route> rutas){
+    double minimaDistancia = rutas[0].distancia;
+    uint indiceRutaMinima = 0;
+    
+    for(uint i = 1; i < rutas.size(); i++)
+    {
+        if(rutas[i].distancia < minimaDistancia){
+            minimaDistancia= rutas[i].distancia;
+            indiceRutaMinima = i;
+        }
+    }
+    return rutas[indiceRutaMinima];
+}
+route obtenerRutasCombinadas(std::vector<std::vector<double>> matriz,route a,route b){
+    //Calculo la nueva capacidad de la ruta
+    double capacidad = a.capacityRoute+b.capacityRoute;
+    //Copio la ruta A
+    std::vector<uint> rutaA = a.ruta;
+    // Obtengo la distancia de la ruta A , quitandole la ultima arista al deposito.
+    double distanciaA = a.distancia - matriz[rutaA[rutaA.size()-2]][rutaA[rutaA.size()-1]];
+    rutaA.erase(rutaA.begin()+rutaA.size()-1);
+    // Hago la combinacion generando la ruta : deposito-rutaA(sin deposito)-rutaB(sin deposito) - deposito
+    for(uint i =1 ; i < b.ruta.size();i++){
+        rutaA.push_back(b.ruta[i]);
+        distanciaA+= matriz[rutaA[rutaA.size()-2]][rutaA[rutaA.size()-1]];
+    }
+    route res(a.indiceRuta,rutaA,capacidad,distanciaA);
+    return res;
+}
+
+// Devuelve la mejor combinacion de las rutas a y b , mejor con respecto a menor distancia.
+// Complejidad: O(N)
+route obtenerLaMejorCombinacionDeRutas(std::vector<std::vector<double>>& matriz,route a, route b){
+    std::vector<uint> rutaA = a.ruta;
+    std::vector<uint> rutaB = b.ruta;
+    std::reverse(rutaA.begin(),rutaA.end());
+    std::reverse(rutaB.begin(),rutaB.end());
+    route reversaA(a.indiceRuta,rutaA,a.capacityRoute,a.distancia);
+    route reversaB(b.indiceRuta,rutaB,b.capacityRoute,b.distancia);
+    std::vector<route> rutasPosibles;
+
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,a,b));
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,b,a));
+
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,reversaA,b));
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,b,reversaA));
+    
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,a,reversaB));
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,reversaB,a));
+
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,reversaA,reversaB));
+    rutasPosibles.push_back(obtenerRutasCombinadas(matriz,reversaB,reversaA));
+    // Devuelvo la ruta combinada que menos distancia recorre.
+    return obtenerMinimaRuta(rutasPosibles);
+}
 //-----------------------------------------------------------------------------------
 //Ej 3 y Ej 4
 
