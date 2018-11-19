@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include "aux.hpp"
+#include <algorithm>
 
 //General
 void printMatriz(std::vector<std::vector<double>> matriz, std::ostream &stream)
