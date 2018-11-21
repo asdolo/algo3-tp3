@@ -84,13 +84,17 @@ uint TP2Clusterization(TSPLibInstance &tspInstance, std::vector<uint> &clusters)
     //Para obtener que punto pertenece a cada cluster veo los vecinos
     std::vector<bool> visitados(agm.size(), false);
     uint cantClusters = 1;
+    uint capacidadRestanteClusterActual = tspInstance.capacity;
+
     for (uint i = 1; i < visitados.size(); i++) //O(N^3) (empieza en 1 así no pone al depósito como cluster)
     {
         if (visitados[i] == false)
         {
             visitados[i] = true;
             clusters[i] = cantClusters;
-            definirClusterTP2(agm, clusters, visitados, i, cantClusters); //O(N^2)
+            capacidadRestanteClusterActual -= tspInstance.demand[i];
+
+            definirClusterTP2(tspInstance, agm, clusters, visitados, i, cantClusters, capacidadRestanteClusterActual); //O(N^2)
             cantClusters++;
         }
     }

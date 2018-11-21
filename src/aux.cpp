@@ -6,6 +6,7 @@
 #include <string>
 #include "aux.hpp"
 #include <algorithm>
+#include "./tsplib-helper/instance.hpp"
 
 //General
 void printMatriz(std::vector<std::vector<double>> matriz, std::ostream &stream)
@@ -263,15 +264,24 @@ std::vector<std::tuple<int, int, int>> obtenerListaDeAristas(std::vector<std::ve
     return res;
 }
 
-void definirClusterTP2(std::vector<std::vector<double>> grafo, std::vector<uint> &result, std::vector<bool> &visitados, uint i, int nroCluster)
+void definirClusterTP2(TSPLibInstance &tspInstance, std::vector<std::vector<double>> grafo, std::vector<uint> &result, std::vector<bool> &visitados, uint i, uint &cantClusters, uint &capacidadRestanteClusterActual)
 {
     for (uint j = 0; j < grafo.size(); j++)
     {
         if (i != j && grafo[i][j] != -1 && visitados[j] == false)
         {
+            if (tspInstance.demand[j] > capacidadRestanteClusterActual)
+            {
+                // Si la demanda de este nodo es mayor que la capacidad restante para este clúster,
+                // aumentamos la cantidad de clusters
+                cantClusters++;
+                capacidadRestanteClusterActual = tspInstance.capacity;
+            }
             visitados[j] = true;
-            result[j] = nroCluster;
-            definirClusterTP2(grafo, result, visitados, j, nroCluster);
+            result[j] = cantClusters;
+            capacidadRestanteClusterActual -= tspInstance.demand[j];
+
+            definirClusterTP2(tspInstance, grafo, result, visitados, j, cantClusters, capacidadRestanteClusterActual);
         }
     }
 }
