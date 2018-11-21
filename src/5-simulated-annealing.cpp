@@ -381,19 +381,19 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
 }
 int main(int argc, char *argv[])
 {
-//    std::string archivoRutas;
-//    std::ofstream archivoTablaClusters;
-//    std::ofstream archivoTiempo;
-//    if(argc<2)system("mkdir -p output/5-simulated-anealing/");
-//    archivoRutas=argc >= 2 ? argv[1] : "output/5-simulated-anealing/rutas.csv";
-//    archivoTablaClusters.open(argc >= 3 ? argv[2] : "output/5-otra-clusterizacion/clusters.csv", std::ios::out | std::ios::trunc);
-//    archivoTiempo.open(argc >= 4 ? argv[3] : "output/5-simulated-anealing/tiempo.csv", std::ios_base::app);
-//    int cantidadRepeticiones = argc >= 5 ? std::stoi(argv[4]) : 1;
-//    int R = argc >= 6 ? std::stoi(argv[5]) : 10;
+    std::string archivoRutas;
+    std::ofstream archivoTablaClusters;
+    std::ofstream archivoTiempo;
+    if(argc<2)system("mkdir -p output/5-simulated-anealing/");
+    archivoRutas=argc >= 2 ? argv[1] : "output/5-simulated-anealing/rutas.csv";
+    archivoTablaClusters.open(argc >= 3 ? argv[2] : "output/5-otra-clusterizacion/clusters.csv", std::ios::out | std::ios::trunc);
+    archivoTiempo.open(argc >= 4 ? argv[3] : "output/5-simulated-anealing/tiempo.csv", std::ios_base::app);
+    int cantidadRepeticiones = argc >= 5 ? std::stoi(argv[4]) : 1;
+    int R = argc >= 6 ? std::stoi(argv[5]) : 10;
     //para debuggear
-    int R = 3;
-    std::ifstream in("/home/luca/Desktop/algo3-tp3/input/A/A-n65-k9.vrp");
-    std::cin.rdbuf(in.rdbuf());
+//    int R = 3;
+//    std::ifstream in("/home/luca/Desktop/algo3-tp3/input/A/A-n65-k9.vrp");
+//    std::cin.rdbuf(in.rdbuf());
 //
 //    // Creo una nueva instancia de TSPLIB a partir de lo que venga por stdin
     TSPLibInstance tspInstance(std::cin);
@@ -402,48 +402,48 @@ int main(int argc, char *argv[])
 //
     std::vector<std::vector<double>> matrizDeAdyacencia = tspInstance.getTSPGraph();
     std::vector<route> solucionMejor;
-//    auto startTime = std::chrono::steady_clock::now();
+    auto startTime = std::chrono::steady_clock::now();
     ejecutarSimulatedAnnealing(tspInstance,solucionMejor,R);
-//    auto endTime = std::chrono::steady_clock::now();
-//    //Calculo cuanto tiempo costo.
-//    auto diff = endTime - startTime;
-//    uint repeticiones = cantidadRepeticiones-1;
-//    while(repeticiones>0){
-//        // Ejecuto el algoritmo
-//        startTime = std::chrono::steady_clock::now();
-//        ejecutarSimulatedAnnealing(tspInstance,solucionMejor,R);
-//        endTime = std::chrono::steady_clock::now();
-//
-//        //Calculo cuanto tiempo costo.
-//        diff += (endTime - startTime);
-//        repeticiones--;
-//    }
-//    diff/=cantidadRepeticiones;
-//    double costoTotal=calcularCosto(matrizDeAdyacencia, solucionMejor);
-//    //Imprimo los tiempos del algoritmo
-//    archivoTiempo << tspInstance.dimension;
-//    archivoTiempo << ",";
-//    archivoTiempo << std::chrono::duration <double, std::milli>(diff).count();
-//    archivoTiempo << ",";
-//    archivoTiempo << costoTotal;
-//    archivoTiempo << std::endl;
-//    archivoTiempo.close();
-//
-//    // Guardamos los clusters en el archivo .csv correspondiente
-//    archivoTablaClusters << "id,x,y" << std::endl;
-//    for (uint i = 0; i < tspInstance.dimension; i++)
-//    {
-//        uint id = i + 1;
-//        double x = std::get<0>(tspInstance.nodeCoords[i]);
-//        double y = std::get<1>(tspInstance.nodeCoords[i]);
-//
-//        archivoTablaClusters << id << "," << x << "," << y << std::endl;
-//    }
-//    archivoTablaClusters.close();
+    auto endTime = std::chrono::steady_clock::now();
+    //Calculo cuanto tiempo costo.
+    auto diff = endTime - startTime;
+    uint repeticiones = cantidadRepeticiones-1;
+    while(repeticiones>0){
+        // Ejecuto el algoritmo
+        startTime = std::chrono::steady_clock::now();
+        ejecutarSimulatedAnnealing(tspInstance,solucionMejor,R);
+        endTime = std::chrono::steady_clock::now();
+
+        //Calculo cuanto tiempo costo.
+        diff += (endTime - startTime);
+        repeticiones--;
+    }
+    diff/=cantidadRepeticiones;
+    double costoTotal=calcularCosto(matrizDeAdyacencia, solucionMejor);
+    //Imprimo los tiempos del algoritmo
+    archivoTiempo << tspInstance.dimension;
+    archivoTiempo << ",";
+    archivoTiempo << std::chrono::duration <double, std::milli>(diff).count();
+    archivoTiempo << ",";
+    archivoTiempo << costoTotal;
+    archivoTiempo << std::endl;
+    archivoTiempo.close();
+
+    // Guardamos los clusters en el archivo .csv correspondiente
+    archivoTablaClusters << "id,x,y" << std::endl;
+    for (uint i = 0; i < tspInstance.dimension; i++)
+    {
+        uint id = i + 1;
+        double x = std::get<0>(tspInstance.nodeCoords[i]);
+        double y = std::get<1>(tspInstance.nodeCoords[i]);
+
+        archivoTablaClusters << id << "," << x << "," << y << std::endl;
+    }
+    archivoTablaClusters.close();
 
 
 //    imprimirSolucionTP(matrizDeAdyacencia,solucionMejor,archivoRutas);
-    imprimirSolucion(matrizDeAdyacencia,solucionMejor);
+//    imprimirSolucion(matrizDeAdyacencia,solucionMejor);
 
     return 0;
 }
