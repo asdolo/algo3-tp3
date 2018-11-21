@@ -1,4 +1,4 @@
-#TEST A
+#TEST CIUDADES
 import os
 import glob
 import re
@@ -9,11 +9,11 @@ fi.write("n,tiempo,resultado\n")
 fi.close()
 fi = open("optimo.csv",'w+')
 fi.write("n,optimo\n")
-path = "../../../input/A/*.vrp"
+path = "../../../input/CIUDADES/*.vrp"
 
 for filename in glob.glob(path):
-    print "Ejecutando savings en " + filename
-    os.system("../../../build/bin/./1-savings rutas"+str(i)+".csv tabla"+str(i)+".csv tiempo.csv "+ str(cantidadRepeticiones) +" < " + filename)
+    print "Ejecutando sweep algorithm en " + filename
+    os.system("../../../build/bin/./3-sweep-algorithm rutas"+str(i)+".csv tabla"+str(i)+".csv tiempo.csv "+ str(cantidadRepeticiones) +" < " + filename)
     i=i+1
     file = open(filename)
     for line in file:

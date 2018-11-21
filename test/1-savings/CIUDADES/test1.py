@@ -1,4 +1,4 @@
-#TEST A
+#TEST CIUDADES
 import os
 import glob
 import re
@@ -9,7 +9,7 @@ fi.write("n,tiempo,resultado\n")
 fi.close()
 fi = open("optimo.csv",'w+')
 fi.write("n,optimo\n")
-path = "../../../input/A/*.vrp"
+path = "../../../input/CIUDADES/*.vrp"
 
 for filename in glob.glob(path):
     print "Ejecutando savings en " + filename
