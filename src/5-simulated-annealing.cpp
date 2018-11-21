@@ -148,7 +148,7 @@ std::vector<std::vector <route> > getVecindad1InterchangeRandom(std::vector<rout
 }
 
 bool esMejores(std::vector<std::tuple<double,int,int> > v,int ruta,int camino){
-    for(uint i = 0; i< v.size();i++){
+    for(int i = 0; i< v.size();i++){
         if(std::get<1>(v[i]) == ruta and (std::get<2>(v[i]) == camino or std::get<2>(v[i])+1 == camino)){
             return true;
         }
@@ -158,8 +158,8 @@ bool esMejores(std::vector<std::tuple<double,int,int> > v,int ruta,int camino){
 
 int mejorPosicion(std::vector<unsigned int> v,int c,std::vector<std::vector<double> > matriz){
     double costominimo = INT_MAX;
-    int mejorPosicion;
-    for(uint i=1;i<v.size()-1;i++) {
+    int mejorPosicion = 1;
+    for(int i=1;i<v.size()-1;i++) {
         std::vector<unsigned int> ruta (v);
         ruta.insert(ruta.begin()+i,c);
         double costo = 0;
@@ -184,8 +184,8 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
 
     std::vector<std::tuple<double,int,int> > caminosMayorPromedio;
 
-    for(uint i=0;i<solucion.size();i++){
-        for(uint j=1; j<solucion[i].ruta.size()-1 ; j++) {
+    for(int i=0;i<solucion.size();i++){
+        for(int j=1; j<solucion[i].ruta.size()-1 ; j++) {
             std::tuple <double,int,int> elem (((matrizDeAdyacencia[solucion[i].ruta[j]][solucion[i].ruta[j-1]] + matrizDeAdyacencia[solucion[i].ruta[j]][solucion[i].ruta[j+1]] )/2)
                     ,i,j);
             caminosMayorPromedio.push_back(elem);
@@ -203,7 +203,7 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
     std::reverse(caminosMayorPromedio.begin(),caminosMayorPromedio.end());
 
 
-    for(uint i =0;i<caminosMayorPromedio.size();i++){
+    for(int i =0;i<caminosMayorPromedio.size();i++){
         unsigned int aux = solucion[std::get<1>(caminosMayorPromedio[i])].ruta[std::get<2>(caminosMayorPromedio[i])];
         solucion[std::get<1>(caminosMayorPromedio[i])].ruta.erase(solucion[std::get<1>(caminosMayorPromedio[i])].ruta.begin()+std::get<2>(caminosMayorPromedio[i]));
         bool termine = false;
@@ -218,10 +218,21 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
     }
 
 
+    for (uint x = 0; x < solucion.size(); x++)
+    {
+        if (solucion[x].ruta.size() < 3)
+        {
+            solucion.erase(solucion.begin() + x);
+            x--;
+        }
+    }
+
+
+
     std::vector<std::tuple<double,int,int> > mejoresCaminos;
 
-    for(uint i =0 ; i<solucion.size();i++){
-        for(uint j=0; j<solucion[i].ruta.size()-1 ; j++){
+    for(int i =0 ; i<solucion.size();i++){
+        for(int j=0; j<solucion[i].ruta.size()-1 ; j++){
             std::tuple <double,int,int> elem (matrizDeAdyacencia [solucion[i].ruta[j]][solucion[i].ruta[j+1]],i,j);
             mejoresCaminos.push_back(elem);
         }
@@ -231,7 +242,7 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
 
     mejoresCaminos.erase(mejoresCaminos.begin()+5,mejoresCaminos.end());
 
-    for(uint i = 0; i < 5 ; i++){
+    for(int i = 0; i < 5 ; i++){
 
         int ruta = random(generador) % (int) solucion.size();
         int camino = random(generador) % ((int) solucion[ruta].ruta.size()-2) + 1 ;
@@ -265,13 +276,11 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
 
 std::vector<std::vector <route> > getVecindad(std::vector<route> solucion, TSPLibInstance tspInstance,std::string variableVecindad) {
     std::vector<std::vector <route> > res;
-    if(variableVecindad == "1Interchange"){
-         return getVecindad1Interchange(solucion,tspInstance);
-    }else if(variableVecindad == "1InterchangeRandom"){ 
-        return getVecindad1Interchange(solucion,tspInstance);
-    }else{
-        return getVecindadMoveHighestAverage(solucion,tspInstance);
-    }
+    if(variableVecindad == "1Interchange") return getVecindad1Interchange(solucion,tspInstance);
+
+    if(variableVecindad == "1InterchangeRandom") return getVecindad1Interchange(solucion,tspInstance);
+
+    if(variableVecindad == "MoveHighestAverage") return getVecindadMoveHighestAverage(solucion,tspInstance);
 
 }
 
@@ -293,15 +302,15 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
         }
     }
 
-    //imprimirSolucion(matrizDeAdyacencia,solucionInicial);
+    imprimirSolucion(matrizDeAdyacencia,solucionInicial);
     //usa las que estan arriba copiadas
     double cInicial = calcularCosto(matrizDeAdyacencia, solucionInicial);
     double delta,deltamax,deltamin;
-    deltamin = 0;
+    deltamin = INFINITY;
     deltamax = 0;
 
-    std::string variableVecindad = "1Interchange";
-//    std::string variableVecindad = "1InterchangeRandom";
+//    std::string variableVecindad = "1Interchange";
+    std::string variableVecindad = "1InterchangeRandom";
 //    std::string variableVecindad = "MoveHighestAverage";
 
     std::vector<std::vector <route> > vecindad = getVecindad(solucionInicial,tspInstance,variableVecindad);
@@ -310,26 +319,26 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
     for(uint i =0;i<vecindad.size();i++) {
         delta = calcularCosto(matrizDeAdyacencia,vecindad[i]) - cInicial;
 
-        if(delta > deltamax) deltamax = delta;
+        if(fabs(delta)> deltamax) deltamax = fabs(delta);
 
-        if(delta < deltamin) deltamin = delta;
+        if(delta != 0 and fabs(delta)< deltamin) deltamin = fabs(delta);
 
     }
-    double tempInicial = deltamax;
-    double tempFinal = deltamin;
+    double tempInicial = deltamax;              //Metodo 1 de temp
+    double tempFinal = deltamin;                //
 
-    double nFeas = 51320;
-    double gamma = matrizDeAdyacencia.size();
-    double alpha = gamma * nFeas;
+    double nFeas = vecindad.size();             //
+    double gamma = matrizDeAdyacencia.size();   //
+    double alpha = gamma * nFeas;               //
 
     int k = 1;
 
+//    tempInicial = calcularCosto(matrizDeAdyacencia,solucionInicial)*0.2;    //Metodo 2 de temp
+//    tempFinal = 0.001;
+//    alpha = 0.95;
+
     solucionMejor = solucionInicial;
     std::vector<route> solucionActual = solucionInicial;
-
-    tempInicial = 5000;
-    tempFinal = 0.001;
-    alpha = 0.99;
 
     while(R != 0){
         double tempActual = tempInicial;
@@ -354,12 +363,14 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
                 }
 
 
-            //Actualizo parametros de temperatura
-//            double beta = (tempInicial - tempFinal) / ((alpha + gamma * sqrt(k)) * (tempInicial * tempFinal));
-//            tempActual = tempActual / (1 + beta * tempActual);
-            k++;
-            tempActual = tempActual * alpha;
+//            Actualizo parametros de temperatura
+            double beta = (tempInicial - tempFinal) / ((alpha + gamma * sqrt(k)) * (tempInicial * tempFinal)); //1
+                if((beta*tempActual) < 0) std::cout << "basta";
+                tempActual = tempActual / (1 + beta * tempActual);
 
+//            tempActual = tempActual * alpha;//2
+
+            k++;
 
             if(tempActual < tempFinal) break;
 
@@ -370,19 +381,19 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
 }
 int main(int argc, char *argv[])
 {
-    std::string archivoRutas;
-    std::ofstream archivoTablaClusters;
-    std::ofstream archivoTiempo;
-    if(argc<2)system("mkdir -p output/5-simulated-anealing/");
-    archivoRutas=argc >= 2 ? argv[1] : "output/5-simulated-anealing/rutas.csv";
-    archivoTablaClusters.open(argc >= 3 ? argv[2] : "output/5-otra-clusterizacion/clusters.csv", std::ios::out | std::ios::trunc);
-    archivoTiempo.open(argc >= 4 ? argv[3] : "output/5-simulated-anealing/tiempo.csv", std::ios_base::app);
-    int cantidadRepeticiones = argc >= 5 ? std::stoi(argv[4]) : 1;
-    int R = argc >= 6 ? std::stoi(argv[5]) : 3;
+//    std::string archivoRutas;
+//    std::ofstream archivoTablaClusters;
+//    std::ofstream archivoTiempo;
+//    if(argc<2)system("mkdir -p output/5-simulated-anealing/");
+//    archivoRutas=argc >= 2 ? argv[1] : "output/5-simulated-anealing/rutas.csv";
+//    archivoTablaClusters.open(argc >= 3 ? argv[2] : "output/5-otra-clusterizacion/clusters.csv", std::ios::out | std::ios::trunc);
+//    archivoTiempo.open(argc >= 4 ? argv[3] : "output/5-simulated-anealing/tiempo.csv", std::ios_base::app);
+//    int cantidadRepeticiones = argc >= 5 ? std::stoi(argv[4]) : 1;
+//    int R = argc >= 6 ? std::stoi(argv[5]) : 10;
     //para debuggear
-//    int R = 10;
-//    std::ifstream in("/home/luca/Desktop/algo3-tp3/input/A/A-n33-k5.vrp");
-//    std::cin.rdbuf(in.rdbuf());
+    int R = 3;
+    std::ifstream in("/home/luca/Desktop/algo3-tp3/input/A/A-n65-k9.vrp");
+    std::cin.rdbuf(in.rdbuf());
 //
 //    // Creo una nueva instancia de TSPLIB a partir de lo que venga por stdin
     TSPLibInstance tspInstance(std::cin);
@@ -391,48 +402,48 @@ int main(int argc, char *argv[])
 //
     std::vector<std::vector<double>> matrizDeAdyacencia = tspInstance.getTSPGraph();
     std::vector<route> solucionMejor;
-    auto startTime = std::chrono::steady_clock::now();
+//    auto startTime = std::chrono::steady_clock::now();
     ejecutarSimulatedAnnealing(tspInstance,solucionMejor,R);
-    auto endTime = std::chrono::steady_clock::now();
-    //Calculo cuanto tiempo costo.
-    auto diff = endTime - startTime;
-    uint repeticiones = cantidadRepeticiones-1;
-    while(repeticiones>0){
-        // Ejecuto el algoritmo
-        startTime = std::chrono::steady_clock::now();
-        ejecutarSimulatedAnnealing(tspInstance,solucionMejor,R);
-        endTime = std::chrono::steady_clock::now();
+//    auto endTime = std::chrono::steady_clock::now();
+//    //Calculo cuanto tiempo costo.
+//    auto diff = endTime - startTime;
+//    uint repeticiones = cantidadRepeticiones-1;
+//    while(repeticiones>0){
+//        // Ejecuto el algoritmo
+//        startTime = std::chrono::steady_clock::now();
+//        ejecutarSimulatedAnnealing(tspInstance,solucionMejor,R);
+//        endTime = std::chrono::steady_clock::now();
+//
+//        //Calculo cuanto tiempo costo.
+//        diff += (endTime - startTime);
+//        repeticiones--;
+//    }
+//    diff/=cantidadRepeticiones;
+//    double costoTotal=calcularCosto(matrizDeAdyacencia, solucionMejor);
+//    //Imprimo los tiempos del algoritmo
+//    archivoTiempo << tspInstance.dimension;
+//    archivoTiempo << ",";
+//    archivoTiempo << std::chrono::duration <double, std::milli>(diff).count();
+//    archivoTiempo << ",";
+//    archivoTiempo << costoTotal;
+//    archivoTiempo << std::endl;
+//    archivoTiempo.close();
+//
+//    // Guardamos los clusters en el archivo .csv correspondiente
+//    archivoTablaClusters << "id,x,y" << std::endl;
+//    for (uint i = 0; i < tspInstance.dimension; i++)
+//    {
+//        uint id = i + 1;
+//        double x = std::get<0>(tspInstance.nodeCoords[i]);
+//        double y = std::get<1>(tspInstance.nodeCoords[i]);
+//
+//        archivoTablaClusters << id << "," << x << "," << y << std::endl;
+//    }
+//    archivoTablaClusters.close();
 
-        //Calculo cuanto tiempo costo.
-        diff += (endTime - startTime);
-        repeticiones--;
-    }
-    diff/=cantidadRepeticiones;
-    double costoTotal=calcularCosto(matrizDeAdyacencia, solucionMejor);
-    //Imprimo los tiempos del algoritmo
-    archivoTiempo << tspInstance.dimension;
-    archivoTiempo << ",";
-    archivoTiempo << std::chrono::duration <double, std::milli>(diff).count();
-    archivoTiempo << ",";
-    archivoTiempo << costoTotal;
-    archivoTiempo << std::endl;
-    archivoTiempo.close();
 
-    // Guardamos los clusters en el archivo .csv correspondiente
-    archivoTablaClusters << "id,x,y" << std::endl;
-    for (uint i = 0; i < tspInstance.dimension; i++)
-    {
-        uint id = i + 1;
-        double x = std::get<0>(tspInstance.nodeCoords[i]);
-        double y = std::get<1>(tspInstance.nodeCoords[i]);
-
-        archivoTablaClusters << id << "," << x << "," << y << std::endl;
-    }
-    archivoTablaClusters.close();
-
-
-    imprimirSolucionTP(matrizDeAdyacencia,solucionMejor,archivoRutas);
-    //imprimirSolucion(matrizDeAdyacencia,solucionMejor);
+//    imprimirSolucionTP(matrizDeAdyacencia,solucionMejor,archivoRutas);
+    imprimirSolucion(matrizDeAdyacencia,solucionMejor);
 
     return 0;
 }
