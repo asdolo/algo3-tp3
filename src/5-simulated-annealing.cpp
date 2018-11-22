@@ -53,11 +53,11 @@ std::vector<std::vector <route> > getVecindad1Interchange(std::vector<route> sol
         for (uint j = i + 1; j < solucion.size(); j++) {
 
             for (uint k = 1; k < solucion[i].ruta.size()-1; k++) {
-                for (uint l = 1; l < solucion[j].ruta.size()-1; l++) {
+                for (uint l = 1; l < solucion[j].ruta.size()-1; l++) {//O(n^2 * ...)
 
 
 //                	Shifteos (1,0)
-                    std::vector<route> sol1(solucion);
+                    std::vector<route> sol1(solucion);//O(n)
                     sol1[j].ruta.insert(sol1[j].ruta.begin()+l,sol1[i].ruta[k]);
                     sol1[i].ruta.erase(sol1[i].ruta.begin()+k);
 
@@ -143,7 +143,7 @@ bool compararTuplas2(std::tuple<double,int,int> a,std::tuple<double,int,int> b){
 std::vector<std::vector <route> > getVecindad1InterchangeRandom(std::vector<route> solucion ,TSPLibInstance tspInstance) {
     std::vector <std::vector<route>> res;
     res = getVecindad1Interchange(solucion,tspInstance);
-    std::random_shuffle ( solucion.begin(), solucion.end());
+    std::random_shuffle ( res.begin(), res.end());
     return res;
 }
 
@@ -184,7 +184,7 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
 
     std::vector<std::tuple<double,int,int> > caminosMayorPromedio;
 
-    for(int i=0;i<solucion.size();i++){
+    for(int i=0;i<solucion.size();i++){ //O(n)
         for(int j=1; j<solucion[i].ruta.size()-1 ; j++) {
             std::tuple <double,int,int> elem (((matrizDeAdyacencia[solucion[i].ruta[j]][solucion[i].ruta[j-1]] + matrizDeAdyacencia[solucion[i].ruta[j]][solucion[i].ruta[j+1]] )/2)
                     ,i,j);
@@ -192,9 +192,9 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
         }
     }
 
-    std::sort(caminosMayorPromedio.begin(),caminosMayorPromedio.end(),compararTuplas0);
+    std::sort(caminosMayorPromedio.begin(),caminosMayorPromedio.end(),compararTuplas0); //n*log n
 
-    std::reverse(caminosMayorPromedio.begin(),caminosMayorPromedio.end());
+    std::reverse(caminosMayorPromedio.begin(),caminosMayorPromedio.end());//n
 
     caminosMayorPromedio.erase(caminosMayorPromedio.begin()+5,caminosMayorPromedio.end());
 
@@ -203,7 +203,7 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
     std::reverse(caminosMayorPromedio.begin(),caminosMayorPromedio.end());
 
 
-    for(int i =0;i<caminosMayorPromedio.size();i++){
+    for(int i =0;i<caminosMayorPromedio.size();i++){//O(1)????
         unsigned int aux = solucion[std::get<1>(caminosMayorPromedio[i])].ruta[std::get<2>(caminosMayorPromedio[i])];
         solucion[std::get<1>(caminosMayorPromedio[i])].ruta.erase(solucion[std::get<1>(caminosMayorPromedio[i])].ruta.begin()+std::get<2>(caminosMayorPromedio[i]));
         bool termine = false;
@@ -218,7 +218,7 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
     }
 
 
-    for (uint x = 0; x < solucion.size(); x++)
+    for (uint x = 0; x < solucion.size(); x++)//O(n)
     {
         if (solucion[x].ruta.size() < 3)
         {
@@ -231,7 +231,7 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
 
     std::vector<std::tuple<double,int,int> > mejoresCaminos;
 
-    for(int i =0 ; i<solucion.size();i++){
+    for(int i =0 ; i<solucion.size();i++){ //O(n)
         for(int j=0; j<solucion[i].ruta.size()-1 ; j++){
             std::tuple <double,int,int> elem (matrizDeAdyacencia [solucion[i].ruta[j]][solucion[i].ruta[j+1]],i,j);
             mejoresCaminos.push_back(elem);
@@ -302,7 +302,7 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
         }
     }
 
-    imprimirSolucion(matrizDeAdyacencia,solucionInicial);
+//    imprimirSolucion(matrizDeAdyacencia,solucionInicial);
     //usa las que estan arriba copiadas
     double cInicial = calcularCosto(matrizDeAdyacencia, solucionInicial);
     double delta,deltamax,deltamin;
@@ -342,6 +342,7 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
 
     while(R != 0){
         double tempActual = tempInicial;
+        k = 1;
         while(tempActual >= tempFinal) {
 
             vecindad = getVecindad(solucionActual, tspInstance, variableVecindad);
@@ -365,8 +366,7 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
 
 //            Actualizo parametros de temperatura
             double beta = (tempInicial - tempFinal) / ((alpha + gamma * sqrt(k)) * (tempInicial * tempFinal)); //1
-                if((beta*tempActual) < 0) std::cout << "basta";
-                tempActual = tempActual / (1 + beta * tempActual);
+            tempActual = tempActual / (1 + beta * tempActual);
 
 //            tempActual = tempActual * alpha;//2
 
@@ -376,9 +376,12 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
 
             }
         }
+//        std::cout << k << std::endl;
         R--;
     }
 }
+
+
 int main(int argc, char *argv[])
 {
     std::string archivoRutas;
@@ -392,7 +395,7 @@ int main(int argc, char *argv[])
     int R = argc >= 6 ? std::stoi(argv[5]) : 10;
     //para debuggear
 //    int R = 3;
-//    std::ifstream in("/home/luca/Desktop/algo3-tp3/input/A/A-n65-k9.vrp");
+//    std::ifstream in("/home/luca/Desktop/algo3-tp3/input/A/A-n37-k6.vrp");
 //    std::cin.rdbuf(in.rdbuf());
 //
 //    // Creo una nueva instancia de TSPLIB a partir de lo que venga por stdin
