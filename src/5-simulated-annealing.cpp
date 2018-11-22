@@ -281,34 +281,34 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
 //    imprimirSolucion(matrizDeAdyacencia,solucionInicial);
     //usa las que estan arriba copiadas
     double cInicial = calcularCosto(matrizDeAdyacencia, solucionInicial);
-    double delta,deltamax,deltamin;
-    deltamin = INFINITY;
-    deltamax = 0;
+    // double delta,deltamax,deltamin;
+    // deltamin = INFINITY;
+    // deltamax = 0;
 
 
     std::vector<std::vector <route> > vecindad = getVecindad(solucionInicial,tspInstance,variableVecindad);
 
     //Recorro la vecindad para conseguir los parametros iniciales
-    for(uint i =0;i<vecindad.size();i++) {
-        delta = calcularCosto(matrizDeAdyacencia,vecindad[i]) - cInicial;
+    // for(uint i =0;i<vecindad.size();i++) {
+    //     delta = calcularCosto(matrizDeAdyacencia,vecindad[i]) - cInicial;
 
-        if(fabs(delta)> deltamax) deltamax = fabs(delta);
+    //     if(fabs(delta)> deltamax) deltamax = fabs(delta);
 
-        if(delta != 0 and fabs(delta)< deltamin) deltamin = fabs(delta);
+    //     if(delta != 0 and fabs(delta)< deltamin) deltamin = fabs(delta);
 
-    }
-    double tempInicial = deltamax;              //Metodo 1 de temp
-    double tempFinal = deltamin;                //
+    // }
+    // double tempInicial = deltamax;              //Metodo 1 de temp
+    // double tempFinal = deltamin;                //
 
-    double nFeas = vecindad.size();             //
-    double gamma = matrizDeAdyacencia.size();   //
-    double alpha = gamma * nFeas;               //
+    // double nFeas = vecindad.size();             //
+    // double gamma = matrizDeAdyacencia.size();   //
+    // double alpha = gamma * nFeas;               //
 
     int k = 1;
 
-//    tempInicial = calcularCosto(matrizDeAdyacencia,solucionInicial)*0.2;    //Metodo 2 de temp
-//    tempFinal = 0.001;
-//    alpha = 0.95;
+   tempInicial = calcularCosto(matrizDeAdyacencia,solucionInicial)*0.2;    //Metodo 2 de temp
+   tempFinal = 0.001;
+   alpha = 0.95;
 
     solucionMejor = solucionInicial;
     std::vector<route> solucionActual = solucionInicial;
@@ -338,10 +338,10 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
 
 
 //            Actualizo parametros de temperatura
-            double beta = (tempInicial - tempFinal) / ((alpha + gamma * sqrt(k)) * (tempInicial * tempFinal)); //1
-            tempActual = tempActual / (1 + beta * tempActual);
+            // double beta = (tempInicial - tempFinal) / ((alpha + gamma * sqrt(k)) * (tempInicial * tempFinal)); //1
+            // tempActual = tempActual / (1 + beta * tempActual);
 
-//            tempActual = tempActual * alpha;//2
+           tempActual = tempActual * alpha;//2
 
             k++;
 
