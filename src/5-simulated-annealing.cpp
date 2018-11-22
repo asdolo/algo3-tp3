@@ -280,8 +280,8 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
 
 //    imprimirSolucion(matrizDeAdyacencia,solucionInicial);
     //usa las que estan arriba copiadas
-    double cInicial = calcularCosto(matrizDeAdyacencia, solucionInicial);
-    // double delta,deltamax,deltamin;
+    // double cInicial = calcularCosto(matrizDeAdyacencia, solucionInicial);
+    double delta,deltamax,deltamin;
     // deltamin = INFINITY;
     // deltamax = 0;
 
@@ -297,12 +297,12 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
     //     if(delta != 0 and fabs(delta)< deltamin) deltamin = fabs(delta);
 
     // }
-    // double tempInicial = deltamax;              //Metodo 1 de temp
-    // double tempFinal = deltamin;                //
+    double tempInicial = deltamax;              //Metodo 1 de temp
+    double tempFinal = deltamin;                //
 
-    // double nFeas = vecindad.size();             //
-    // double gamma = matrizDeAdyacencia.size();   //
-    // double alpha = gamma * nFeas;               //
+    double nFeas = vecindad.size();             //
+    double gamma = matrizDeAdyacencia.size();   //
+    double alpha = gamma * nFeas;               //
 
     int k = 1;
 
