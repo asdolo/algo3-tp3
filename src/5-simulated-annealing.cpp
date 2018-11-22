@@ -11,39 +11,13 @@
 #include "aux.hpp"
 #include "savings/savings.hpp"
 
+std::string variableVecindad="1InterchangeRandom";
 unsigned int demandaRuta (std::vector<unsigned int> ruta, TSPLibInstance tspInstance){
     uint total = 0;
     for(unsigned int i = 0; i<ruta.size();i++){
         total += tspInstance.demand[ruta[i]];
     }
     return total;
-}
-
-void printRutaSolucionn(route r)
-{
-    std::vector<uint> ruta = r.ruta;
-
-    for (uint j = 0; j < ruta.size(); j++)
-    {
-        std::cout << ruta[j] + 1;
-        if (j != ruta.size() - 1)
-        {
-            std::cout << " ";
-        }
-    }
-    std::cout << std::endl;
-}
-
-
-void imprimirSolucion(std::vector<std::vector<double>> matriz,std::vector<route> routes)
-{
-    std::cout << routes.size() << std::endl;
-
-    for (uint i = 0; i < routes.size(); i++)
-    {
-        printRutaSolucionn(routes[i]);
-    }
-    std::cout << calcularCosto(matriz, routes) << std::endl;
 }
 
 
@@ -148,7 +122,7 @@ std::vector<std::vector <route> > getVecindad1InterchangeRandom(std::vector<rout
 }
 
 bool esMejores(std::vector<std::tuple<double,int,int> > v,int ruta,int camino){
-    for(int i = 0; i< v.size();i++){
+    for(uint i = 0; i< v.size();i++){
         if(std::get<1>(v[i]) == ruta and (std::get<2>(v[i]) == camino or std::get<2>(v[i])+1 == camino)){
             return true;
         }
@@ -159,7 +133,7 @@ bool esMejores(std::vector<std::tuple<double,int,int> > v,int ruta,int camino){
 int mejorPosicion(std::vector<unsigned int> v,int c,std::vector<std::vector<double> > matriz){
     double costominimo = INT_MAX;
     int mejorPosicion = 1;
-    for(int i=1;i<v.size()-1;i++) {
+    for(uint i=1;i<v.size()-1;i++) {
         std::vector<unsigned int> ruta (v);
         ruta.insert(ruta.begin()+i,c);
         double costo = 0;
@@ -184,8 +158,8 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
 
     std::vector<std::tuple<double,int,int> > caminosMayorPromedio;
 
-    for(int i=0;i<solucion.size();i++){ //O(n)
-        for(int j=1; j<solucion[i].ruta.size()-1 ; j++) {
+    for(uint i=0;i<solucion.size();i++){ //O(n)
+        for(uint j=1; j<solucion[i].ruta.size()-1 ; j++) {
             std::tuple <double,int,int> elem (((matrizDeAdyacencia[solucion[i].ruta[j]][solucion[i].ruta[j-1]] + matrizDeAdyacencia[solucion[i].ruta[j]][solucion[i].ruta[j+1]] )/2)
                     ,i,j);
             caminosMayorPromedio.push_back(elem);
@@ -203,7 +177,7 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
     std::reverse(caminosMayorPromedio.begin(),caminosMayorPromedio.end());
 
 
-    for(int i =0;i<caminosMayorPromedio.size();i++){//O(1)????
+    for(uint i =0;i<caminosMayorPromedio.size();i++){//O(1)????
         unsigned int aux = solucion[std::get<1>(caminosMayorPromedio[i])].ruta[std::get<2>(caminosMayorPromedio[i])];
         solucion[std::get<1>(caminosMayorPromedio[i])].ruta.erase(solucion[std::get<1>(caminosMayorPromedio[i])].ruta.begin()+std::get<2>(caminosMayorPromedio[i]));
         bool termine = false;
@@ -231,8 +205,8 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
 
     std::vector<std::tuple<double,int,int> > mejoresCaminos;
 
-    for(int i =0 ; i<solucion.size();i++){ //O(n)
-        for(int j=0; j<solucion[i].ruta.size()-1 ; j++){
+    for(uint i =0 ; i<solucion.size();i++){ //O(n)
+        for(uint j=0; j<solucion[i].ruta.size()-1 ; j++){
             std::tuple <double,int,int> elem (matrizDeAdyacencia [solucion[i].ruta[j]][solucion[i].ruta[j+1]],i,j);
             mejoresCaminos.push_back(elem);
         }
@@ -242,7 +216,7 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
 
     mejoresCaminos.erase(mejoresCaminos.begin()+5,mejoresCaminos.end());
 
-    for(int i = 0; i < 5 ; i++){
+    for(uint i = 0; i < 5 ; i++){
 
         int ruta = random(generador) % (int) solucion.size();
         int camino = random(generador) % ((int) solucion[ruta].ruta.size()-2) + 1 ;
@@ -276,11 +250,13 @@ std::vector<std::vector<route> > getVecindadMoveHighestAverage(std::vector<route
 
 std::vector<std::vector <route> > getVecindad(std::vector<route> solucion, TSPLibInstance tspInstance,std::string variableVecindad) {
     std::vector<std::vector <route> > res;
-    if(variableVecindad == "1Interchange") return getVecindad1Interchange(solucion,tspInstance);
-
-    if(variableVecindad == "1InterchangeRandom") return getVecindad1Interchange(solucion,tspInstance);
-
-    if(variableVecindad == "MoveHighestAverage") return getVecindadMoveHighestAverage(solucion,tspInstance);
+    if(variableVecindad == "1Interchange"){ 
+        return getVecindad1Interchange(solucion,tspInstance);
+    }else if(variableVecindad == "1InterchangeRandom") {
+        return getVecindad1Interchange(solucion,tspInstance);
+    }else{
+        return getVecindadMoveHighestAverage(solucion,tspInstance);
+    }
 
 }
 
@@ -309,9 +285,6 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
     deltamin = INFINITY;
     deltamax = 0;
 
-//    std::string variableVecindad = "1Interchange";
-    std::string variableVecindad = "1InterchangeRandom";
-//    std::string variableVecindad = "MoveHighestAverage";
 
     std::vector<std::vector <route> > vecindad = getVecindad(solucionInicial,tspInstance,variableVecindad);
 
@@ -392,12 +365,14 @@ int main(int argc, char *argv[])
     archivoTablaClusters.open(argc >= 3 ? argv[2] : "output/5-otra-clusterizacion/clusters.csv", std::ios::out | std::ios::trunc);
     archivoTiempo.open(argc >= 4 ? argv[3] : "output/5-simulated-anealing/tiempo.csv", std::ios_base::app);
     int cantidadRepeticiones = argc >= 5 ? std::stoi(argv[4]) : 1;
-    int R = argc >= 6 ? std::stoi(argv[5]) : 10;
-    //para debuggear
-//    int R = 3;
-//    std::ifstream in("/home/luca/Desktop/algo3-tp3/input/A/A-n37-k6.vrp");
-//    std::cin.rdbuf(in.rdbuf());
-//
+    int R = argc >= 6 ? std::stoi(argv[5]) : 3;
+    int tipoVecindad = argc >= 7 ? std::stoi(argv[6]) : 1;
+    if(tipoVecindad==1){
+        variableVecindad="1Interchange";
+    }else if(tipoVecindad==3){
+        variableVecindad="MoveHighestAverage";
+    }
+    
 //    // Creo una nueva instancia de TSPLIB a partir de lo que venga por stdin
     TSPLibInstance tspInstance(std::cin);
 //
@@ -445,8 +420,7 @@ int main(int argc, char *argv[])
     archivoTablaClusters.close();
 
 
-//    imprimirSolucionTP(matrizDeAdyacencia,solucionMejor,archivoRutas);
-//    imprimirSolucion(matrizDeAdyacencia,solucionMejor);
+    imprimirSolucionTP(matrizDeAdyacencia,solucionMejor,archivoRutas);
 
     return 0;
 }
