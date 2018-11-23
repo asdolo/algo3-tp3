@@ -1,4 +1,4 @@
-#TEST CIUDADES
+#TEST ELIPSE
 import os
 import glob
 import re
@@ -9,13 +9,11 @@ fi.write("n,tiempo,resultado\n")
 fi.close()
 fi = open("optimo.csv",'w+')
 fi.write("n,optimo\n")
-path = "../../../input/ELIPSE/*.vrp"
-R = 1
-vecindad = 2
+path = "../../../input/ELIPSE/elipse2.vrp"
 
 for filename in glob.glob(path):
-    print "Ejecutando simulated-annealing en " + filename
-    os.system("../../../build/bin/./5-simulated-annealing rutas"+str(i)+".csv tabla"+str(i)+".csv tiempo.csv "+ str(cantidadRepeticiones) +" "+str(R)+ " "+str(vecindad)+" < " + filename)
+    print "Ejecutando golosa en " + filename
+    os.system("../../../build/bin/./2-golosa rutas"+str(i)+".csv tabla"+str(i)+".csv tiempo.csv "+ str(cantidadRepeticiones) +" < " + filename)
     i=i+1
     file = open(filename)
     for line in file:

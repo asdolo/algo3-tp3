@@ -3,14 +3,14 @@ import os
 import glob
 import re
 i = 0
-cantidadRepeticiones = 3
+cantidadRepeticiones = 1
 fi = open("tiempo.csv",'w+')
 fi.write("n,tiempo,resultado\n")
 fi.close()
 fi = open("optimo.csv",'w+')
 fi.write("n,optimo\n")
 path = "../../../input/A/*.vrp"
-R = 3
+R = 1
 vecindad = 2
 
 for filename in glob.glob(path):

@@ -10,7 +10,7 @@ fi.close()
 fi = open("optimo.csv",'w+')
 fi.write("n,optimo\n")
 path = "../../../input/CIUDADES/*.vrp"
-R = 3
+R = 1
 vecindad = 2
 
 for filename in glob.glob(path):

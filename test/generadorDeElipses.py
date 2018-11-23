@@ -11,7 +11,7 @@ def puntosY(a,b,x):
         return [hola]
 a=10
 b=10000
-incremento=1.25
+incremento=0.625
 b=10000*(a/incremento)
 id = 0
 cantidadNodosX = (2*a/incremento)+1

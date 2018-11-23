@@ -9,7 +9,7 @@ fi.write("n,tiempo,resultado\n")
 fi.close()
 fi = open("optimo.csv",'w+')
 fi.write("n,optimo\n")
-path = "../../../input/ELIPSE/*.vrp"
+path = "../../../input/ELIPSE/elipse2.vrp"
 R = 1
 vecindad = 2
 

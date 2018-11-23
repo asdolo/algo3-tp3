@@ -282,8 +282,8 @@ void ejecutarSimulatedAnnealing(TSPLibInstance& tspInstance,std::vector<route>& 
     //usa las que estan arriba copiadas
     // double cInicial = calcularCosto(matrizDeAdyacencia, solucionInicial);
     double delta,deltamax,deltamin;
-    // deltamin = INFINITY;
-    // deltamax = 0;
+    deltamin = 0;
+    deltamax = 0;
 
 
     std::vector<std::vector <route> > vecindad = getVecindad(solucionInicial,tspInstance,variableVecindad);
